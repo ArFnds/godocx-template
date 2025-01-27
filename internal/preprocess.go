@@ -30,14 +30,13 @@ func PreprocessTemplate(root Node, delimiter []string) (Node, error) {
 				textIn := textNode.Text
 				textNode.Text = ""
 
-				for i := 0; i < len(textIn); i++ {
-					c := textIn[i]
+				for i, c := range textIn {
 
-					var currentDelimiter string
+					var currentDelimiter []rune
 					if fCmd {
-						currentDelimiter = delimiter[1]
+						currentDelimiter = []rune(delimiter[1])
 					} else {
-						currentDelimiter = delimiter[0]
+						currentDelimiter = []rune(delimiter[0])
 					}
 
 					if c == currentDelimiter[idxDelimiter] {
@@ -58,7 +57,7 @@ func PreprocessTemplate(root Node, delimiter []string) (Node, error) {
 									node = openNode
 								}
 							}
-							openNode.Text += currentDelimiter
+							openNode.Text += string(currentDelimiter)
 							if !fCmd && i < len(textIn)-1 {
 								openNode, err := InsertTextSiblingAfter(openNode)
 								if err != nil {
@@ -76,7 +75,7 @@ func PreprocessTemplate(root Node, delimiter []string) (Node, error) {
 
 					} else if idxDelimiter != 0 {
 						//openNode._text += currentDelimiter.slice(0, idxDelimiter);
-						openNode.Text += currentDelimiter[0:idxDelimiter]
+						openNode.Text += string(currentDelimiter[0:idxDelimiter])
 						idxDelimiter = 0
 						if !fCmd {
 							openNode = textNode

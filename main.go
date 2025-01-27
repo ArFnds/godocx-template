@@ -3,8 +3,8 @@ package main
 import (
 	"archive/zip"
 	"fmt"
-	"io"
 	"log/slog"
+	"os"
 
 	. "github.com/ArFnds/godocx-template/internal"
 )
@@ -13,31 +13,17 @@ const (
 	DOCUMENT_PATH = "word/document.xml"
 )
 
-func ZipGetText(z *zip.ReadCloser, filename string) (string, error) {
-	rc, err := z.Open(filename)
-	if err != nil {
-		return "", err
-	}
-	defer rc.Close()
-
-	data, err := io.ReadAll(rc)
-	if err != nil {
-		return "", err
-	}
-	return string(data), nil
-}
-
 func main() {
 	slog.SetLogLoggerLevel(slog.LevelDebug)
-	// open the defaultTemplate as a zip file
-	zip, err := zip.OpenReader("defaultTemplate.docx")
+	// open the defaultTemplate as a zipTemplate file
+	zipTemplate, err := zip.OpenReader("defaultTemplate.docx")
 	if err != nil {
 		panic(err)
 	}
-	defer zip.Close()
+	defer zipTemplate.Close()
 
 	// open the main document
-	doc, err := ZipGetText(zip, DOCUMENT_PATH)
+	doc, err := ZipGetText(zipTemplate, DOCUMENT_PATH)
 	if err != nil {
 		panic(err)
 	}
@@ -48,11 +34,38 @@ func main() {
 		panic(err)
 	}
 
-	prenode, err := PreprocessTemplate(root, []string{"+++", "+++"})
+	prepedTemplate, err := PreprocessTemplate(root, []string{"+++", "+++"})
 	if err != nil {
 		panic(err)
 	}
-	DisplayContent(prenode)
+	DisplayContent(prepedTemplate)
+
+	newXml := BuildXml(prepedTemplate, XmlOptions{
+		LiteralXmlDelimiter: "||",
+	}, "")
+
+	// write
+	outputFile, err := os.Create("out.docx")
+	if err != nil {
+		fmt.Println("Erreur lors de la création du fichier ZIP de sortie :", err)
+		return
+	}
+	defer outputFile.Close()
+
+	writer := zip.NewWriter(outputFile)
+	defer writer.Close()
+
+	err = ZipClone(zipTemplate, writer)
+	if err != nil {
+		fmt.Println("Erreur lors de la clonage du fichier ZIP de sortie :", err)
+		return
+	}
+
+	err = ZipSetText(writer, DOCUMENT_PATH, string(newXml))
+	if err != nil {
+		fmt.Println("Erreur lors de la clonage du fichier ZIP de sortie :", err)
+		return
+	}
 
 }
 
