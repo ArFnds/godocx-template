@@ -109,7 +109,7 @@ func PreprocessTemplate(root Node, delimiter []string) (Node, error) {
 			// while (node._parent != null) {
 			for node.Parent() != nil {
 				parent := node.Parent()
-				nextSibling := GetNextSibling(node)
+				nextSibling := getNextSibling(node)
 				if nextSibling != nil {
 					fFound = true
 					node = nextSibling

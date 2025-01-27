@@ -6,14 +6,22 @@ import (
 )
 
 // CloneNodeWithoutChildren crée une copie d'un noeud sans ses enfants
-func CloneNodeWithoutChildren(node *NonTextNode) *NonTextNode {
-	return &NonTextNode{
-		BaseNode: BaseNode{
-			ParentNode: node.ParentNode,
-		},
-		Tag:   node.Tag,
-		Attrs: node.Attrs,
+func CloneNodeWithoutChildren(node Node) Node {
+	switch nd := node.(type) {
+	case *NonTextNode:
+		return &NonTextNode{
+			BaseNode: BaseNode{
+				ParentNode: node.Parent(),
+			},
+			Tag:   nd.Tag,
+			Attrs: nd.Attrs,
+		}
+	case *TextNode:
+		return &TextNode{
+			Text: nd.Text,
+		}
 	}
+	return nil
 }
 
 // InsertTextSiblingAfter crée et insère un nouveau noeud texte après le noeud texte donné
@@ -39,7 +47,7 @@ func InsertTextSiblingAfter(textNode *TextNode) (*TextNode, error) {
 
 	// Créer un nouveau noeud w:t
 	newTNode := CloneNodeWithoutChildren(tNode)
-	newTNode.ParentNode = tNodeParent
+	newTNode.SetParent(tNodeParent)
 
 	// Créer le nouveau noeud texte
 	newTextNode := &TextNode{
@@ -50,7 +58,7 @@ func InsertTextSiblingAfter(textNode *TextNode) (*TextNode, error) {
 	}
 
 	// Ajouter le noeud texte comme enfant du nouveau noeud w:t
-	newTNode.ChildNodes = []Node{newTextNode}
+	newTNode.SetChildren([]Node{newTextNode})
 
 	// Insérer le nouveau noeud après le noeud actuel
 	parent, ok := tNodeParent.(*NonTextNode)
@@ -64,25 +72,30 @@ func InsertTextSiblingAfter(textNode *TextNode) (*TextNode, error) {
 	return newTextNode, nil
 }
 
-// GetNextSibling retourne le prochain noeud frère ou nil s'il n'existe pas
-func GetNextSibling(node Node) Node {
+// getNextSibling retourne le prochain noeud frère ou nil s'il n'existe pas
+func getNextSibling(node Node) Node {
 	parent := node.Parent()
 	if parent == nil {
 		return nil
 	}
 
 	siblings := parent.Children()
-	idx := -1
-	for i, sibling := range siblings {
-		if sibling == node {
-			idx = i
-			break
-		}
-	}
 
+	idx := slices.Index(siblings, node)
 	if idx < 0 || idx >= len(siblings)-1 {
 		return nil
 	}
-
 	return siblings[idx+1]
+}
+
+func getCurLoop(ctx Context) *LoopStatus {
+	if len(ctx.loops) == 0 {
+		return nil
+	}
+	return &ctx.loops[len(ctx.loops)-1]
+}
+
+func isLoopExploring(ctx Context) bool {
+	curLoop := getCurLoop(ctx)
+	return curLoop != nil && curLoop.idx < 0
 }

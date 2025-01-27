@@ -9,6 +9,7 @@ type Node interface {
 	Parent() Node
 	SetParent(Node)
 	Children() []Node
+	SetChildren([]Node)
 }
 
 type BaseNode struct {
@@ -26,6 +27,10 @@ func (n *BaseNode) SetParent(node Node) {
 
 func (n *BaseNode) Children() []Node {
 	return n.ChildNodes
+}
+
+func (n *BaseNode) SetChildren(children []Node) {
+	n.ChildNodes = children
 }
 
 type TextNode struct {
@@ -81,25 +86,25 @@ type Context struct {
 	fSeekQuery       bool
 	query            string
 	buffers          map[string]BufferStatus
-	pendingImageNode struct {
+	pendingImageNode *struct {
 		image   NonTextNode
 		caption []NonTextNode
 	}
 	imageAndShapeIdIncrement int
-	images                   map[string]Image
-	pendingLinkNode          NonTextNode
+	images                   Images
+	pendingLinkNode          *NonTextNode
 	linkId                   int
-	links                    map[string]NonTextNode
-	pendingHtmlNode          TextNode
+	links                    Links
+	pendingHtmlNode          *TextNode
 	htmlId                   int
-	htmls                    map[string]TextNode
+	htmls                    Htmls
 	vars                     map[string]VarValue
 	loops                    []LoopStatus
 	fJump                    bool
 	shorthands               map[string]string
 	options                  CreateReportOptions
 	//jsSandbox                SandBox
-	textRunPropsNode NonTextNode
+	textRunPropsNode *NonTextNode
 
 	pIfCheckMap  map[Node]string
 	trIfCheckMap map[Node]string
@@ -108,18 +113,18 @@ type Context struct {
 type ErrorHandler = func(err error, rawCode string) any
 
 type CreateReportOptions struct {
-	cmdDelimiter        [2]string
-	literalXmlDelimiter string
-	processLineBreaks   bool
+	CmdDelimiter        [2]string
+	LiteralXmlDelimiter string
+	ProcessLineBreaks   bool
 	//noSandbox          bool
 	//runJs              RunJSFunc
 	//additionalJsContext Object
-	failFast                   bool
-	rejectNullish              bool
-	errorHandler               ErrorHandler
-	fixSmartQuotes             bool
-	processLineBreaksAsNewText bool
-	maximumWalkingDepth        int
+	FailFast                   bool
+	RejectNullish              bool
+	ErrorHandler               ErrorHandler
+	FixSmartQuotes             bool
+	ProcessLineBreaksAsNewText bool
+	MaximumWalkingDepth        int
 }
 
 type VarValue any
