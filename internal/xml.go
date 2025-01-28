@@ -52,10 +52,10 @@ func ParseXml(templateXml string) (Node, error) {
 
 		case xml.CharData:
 			if currentNode != nil {
-				text := strings.TrimSpace(string(t))
+				text := string(t)
 				if text != "" {
 					textNode := NewTextNode(text)
-					currentNode.(*NonTextNode).ChildNodes = append(currentNode.(*NonTextNode).ChildNodes, textNode)
+					currentNode.AddChild(textNode)
 					textNode.SetParent(currentNode)
 				}
 			}

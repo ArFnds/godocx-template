@@ -60,7 +60,7 @@ func main() {
 	}
 
 	newXml := BuildXml(result.Report, XmlOptions{
-		LiteralXmlDelimiter: "||",
+		LiteralXmlDelimiter: DEFAULT_LITERAL_XML_DELIMITER,
 	}, "")
 
 	// write
