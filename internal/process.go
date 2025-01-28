@@ -17,15 +17,18 @@ type ReportOutput struct {
 
 type ReportData map[string]any
 
-type CommandProcessor func(data ReportData, node Node, ctx Context) (string, error)
+type CommandProcessor func(data ReportData, node Node, ctx *Context) (string, error)
+
+var (
+	IncompleteConditionalStatementError = errors.New("IncompleteConditionalStatementError")
+)
 
 func ProduceReport(data ReportData, template Node, ctx Context) (*ReportOutput, error) {
-
-	return walkTemplate(data, template, ctx, processCmd)
+	return walkTemplate(data, template, &ctx, processCmd)
 }
 
-func processCmd(data ReportData, node Node, ctx Context) (string, error) {
-	return "", nil
+func processCmd(data ReportData, node Node, ctx *Context) (string, error) {
+	return "Content", nil
 }
 
 func debugPrintNode(node Node) string {
@@ -38,7 +41,7 @@ func debugPrintNode(node Node) string {
 		return "<unknown>"
 	}
 }
-func walkTemplate(data ReportData, template Node, ctx Context, processor CommandProcessor) (report *ReportOutput, retErr error) {
+func walkTemplate(data ReportData, template Node, ctx *Context, processor CommandProcessor) (report *ReportOutput, retErr error) {
 	out := CloneNodeWithoutChildren(template.(*NonTextNode))
 
 	nodeIn := template
@@ -51,9 +54,6 @@ func walkTemplate(data ReportData, template Node, ctx Context, processor Command
 	maximumWalkingDepth := 1_000_000
 
 	for {
-		if loopCount == 40335 {
-			fmt.Println("Loop 40335")
-		}
 		curLoop := getCurLoop(ctx)
 		var nextSibling Node = nil
 
@@ -111,22 +111,22 @@ func walkTemplate(data ReportData, template Node, ctx Context, processor Command
 				tag = nonTextNodeOut.Tag
 			}
 			fRemoveNode := false
-			if (tag == "p" ||
-				tag == "tbl" ||
-				tag == "tr" ||
-				tag == "tc") && isLoopExploring(ctx) {
+			if (tag == P_TAG ||
+				tag == TBL_TAG ||
+				tag == TR_TAG ||
+				tag == TC_TAG) && isLoopExploring(ctx) {
 				fRemoveNode = true
 				// Delete last generated output node if the user inserted a paragraph
 				// (or table row) with just a command
-			} else if tag == "p" || tag == "tr" || tag == "tc" {
+			} else if tag == P_TAG || tag == TR_TAG || tag == TC_TAG {
 				buffers := ctx.buffers[tag]
-				fRemoveNode = buffers.text == "" && buffers.cmds == "" && !buffers.fInsertedText
+				fRemoveNode = buffers.text == "" && buffers.cmds != "" && !buffers.fInsertedText
 			}
 
 			// Execute removal, if needed. The node will no longer be part of the output, but
 			// the parent will be accessible from the child (so that we can still move up the tree)
 			if fRemoveNode && nodeOut.Parent() != nil {
-				nodeOut.Parent().SetChildren(nodeOut.Parent().Children()[:len(nodeOut.Parent().Children())-1])
+				nodeOut.Parent().PopChild()
 			}
 
 		}
@@ -156,7 +156,7 @@ func walkTemplate(data ReportData, template Node, ctx Context, processor Command
 				if parent != nil {
 					imgNode.SetParent(parent)
 					// pop last children
-					parent.SetChildren(parent.Children()[:len(parent.Children())-1])
+					parent.PopChild()
 					parent.SetChildren(append(parent.Children(), &imgNode))
 					if len(captionNodes) > 0 {
 						for _, captionNode := range captionNodes {
@@ -166,16 +166,9 @@ func walkTemplate(data ReportData, template Node, ctx Context, processor Command
 					}
 
 					// Prevent containing paragraph or table row from being removed
-					// TODO typing
-					bp := ctx.buffers["p"]
-					bp.fInsertedText = true
-					ctx.buffers["p"] = bp
-					btr := ctx.buffers["tr"]
-					btr.fInsertedText = true
-					ctx.buffers["tr"] = btr
-					btc := ctx.buffers["tc"]
-					btc.fInsertedText = true
-					ctx.buffers["tc"] = btc
+					ctx.buffers[P_TAG].fInsertedText = true
+					ctx.buffers[TR_TAG].fInsertedText = true
+					ctx.buffers[TC_TAG].fInsertedText = true
 				}
 				ctx.pendingImageNode = nil
 			}
@@ -188,42 +181,30 @@ func walkTemplate(data ReportData, template Node, ctx Context, processor Command
 				if parent != nil {
 					linkNode.SetParent(parent)
 					// pop last children
-					parent.SetChildren(parent.Children()[:len(parent.Children())-1])
+					parent.PopChild()
 					parent.SetChildren(append(parent.Children(), linkNode))
 					// Prevent containing paragraph or table row from being removed
-					bp := ctx.buffers["p"]
-					bp.fInsertedText = true
-					ctx.buffers["p"] = bp
-					btr := ctx.buffers["tr"]
-					btr.fInsertedText = true
-					ctx.buffers["tr"] = btr
-					btc := ctx.buffers["tc"]
-					btc.fInsertedText = true
-					ctx.buffers["tc"] = btc
+					ctx.buffers[P_TAG].fInsertedText = true
+					ctx.buffers[TR_TAG].fInsertedText = true
+					ctx.buffers[TC_TAG].fInsertedText = true
 				}
 				ctx.pendingLinkNode = nil
 			}
 
 			// If a html page was generated, replace the parent `w:p` node with
 			// the html node
-			if ctx.pendingHtmlNode != nil && isNotTextNode && nonTextNodeOut.Tag == "p" {
+			if ctx.pendingHtmlNode != nil && isNotTextNode && nonTextNodeOut.Tag == P_TAG {
 				htmlNode := ctx.pendingHtmlNode
 				parent := nodeOut.Parent()
 				if parent != nil {
 					htmlNode.SetParent(parent)
 					// pop last children
-					parent.SetChildren(parent.Children()[:len(parent.Children())-1])
-					parent.SetChildren(append(parent.Children(), htmlNode))
+					parent.PopChild()
+					parent.AddChild(htmlNode)
 					// Prevent containing paragraph or table row from being removed
-					bp := ctx.buffers["p"]
-					bp.fInsertedText = true
-					ctx.buffers["p"] = bp
-					btr := ctx.buffers["tr"]
-					btr.fInsertedText = true
-					ctx.buffers["tr"] = btr
-					btc := ctx.buffers["tc"]
-					btc.fInsertedText = true
-					ctx.buffers["tc"] = btc
+					ctx.buffers[P_TAG].fInsertedText = true
+					ctx.buffers[TR_TAG].fInsertedText = true
+					ctx.buffers[TC_TAG].fInsertedText = true
 				}
 				ctx.pendingHtmlNode = nil
 			}
@@ -232,17 +213,17 @@ func walkTemplate(data ReportData, template Node, ctx Context, processor Command
 			// case, add an empty `w:p` inside
 			filterCase := slices.ContainsFunc(nodeOut.Children(), func(node Node) bool {
 				nonTextNode, isNotTextNode := node.(*NonTextNode)
-				return isNotTextNode && (nonTextNode.Tag == "p" || nonTextNode.Tag == "altChunk")
+				return isNotTextNode && (nonTextNode.Tag == P_TAG || nonTextNode.Tag == ALTCHUNK_TAG)
 			})
-			if isNotTextNode && nonTextNodeOut.Tag == "tc" && !filterCase {
-				nodeOut.SetChildren(append(nodeOut.Children(), NewNonTextNode("p", nil, nil)))
+			if isNotTextNode && nonTextNodeOut.Tag == TC_TAG && !filterCase {
+				nodeOut.AddChild(NewNonTextNode(P_TAG, nil, nil))
 			}
 
 			// Save latest `w:rPr` node that was visited (for LINK properties)
-			if isNotTextNode && nonTextNodeOut.Tag == "rPr" {
+			if isNotTextNode && nonTextNodeOut.Tag == RPR_TAG {
 				ctx.textRunPropsNode = nonTextNodeOut
 			}
-			if isNotTextNode && nonTextNodeOut.Tag == "r" {
+			if isNotTextNode && nonTextNodeOut.Tag == R_TAG {
 				ctx.textRunPropsNode = nil
 			}
 		}
@@ -266,19 +247,20 @@ func walkTemplate(data ReportData, template Node, ctx Context, processor Command
 			if isNodeInNTxt {
 				tag = nodeInNTxt.Tag
 			}
-			if tag == "p" || tag == "tr" || tag == "tc" {
-				ctx.buffers[tag] = BufferStatus{text: "", cmds: "", fInsertedText: false}
+			if tag == P_TAG || tag == TR_TAG || tag == TC_TAG {
+				ctx.buffers[tag] = &BufferStatus{text: "", cmds: "", fInsertedText: false}
 			}
 
 			newNode := CloneNodeWithoutChildren(nodeIn)
 			newNode.SetParent(nodeOut)
-			nodeOut.SetChildren(append(nodeOut.Children(), newNode))
+			nodeOut.AddChild(newNode)
 
+			// Update shape IDs in mc:AlternateContent
 			if isNodeInNTxt {
 				newNodeTag := nodeInNTxt.Tag
-				if !isLoopExploring(ctx) && (newNodeTag == "docPr" || newNodeTag == "shape") {
-					slog.Debug("detected a - ", "newNode", newNode)
-					updateID(newNode.(*NonTextNode), ctx)
+				if !isLoopExploring(ctx) && (newNodeTag == DOCPR_TAG || newNodeTag == VSHAPE_TAG) {
+					slog.Debug("detected a - ", "newNode", debugPrintNode(newNode))
+					//updateID(newNode.(*NonTextNode), ctx)
 				}
 			}
 
@@ -287,12 +269,12 @@ func walkTemplate(data ReportData, template Node, ctx Context, processor Command
 			nodeInTxt, isNodeInTxt := nodeIn.(*TextNode)
 			nodeInParentNTxt, isNodeInParentNTxt := parent.(*NonTextNode)
 			if isNodeInTxt && parent != nil && isNodeInParentNTxt && nodeInParentNTxt.Tag == T_TAG {
-				result, err := processText(&data, nodeInTxt, &ctx, processor)
+				result, err := processText(&data, nodeInTxt, ctx, processor)
 				if err != nil {
 					retErr = errors.Join(retErr, err)
-				} else if newNodeTxt, ok := newNode.(*TextNode); ok {
-					newNodeTxt.Text = result
-
+				} else {
+					newNode.(*TextNode).Text = result
+					slog.Debug("Inserted command result string into node. Updated node: ", "node", debugPrintNode(newNode))
 				}
 			}
 			// Execute the move in the output tree
@@ -342,10 +324,6 @@ func walkTemplate(data ReportData, template Node, ctx Context, processor Command
 
 }
 
-var (
-	IncompleteConditionalStatementError = errors.New("IncompleteConditionalStatementError")
-)
-
 func processText(data *ReportData, node *TextNode, ctx *Context, onCommand CommandProcessor) (string, error) {
 	cmdDelimiter := ctx.options.CmdDelimiter
 	failFast := ctx.options.FailFast
@@ -365,7 +343,7 @@ func processText(data *ReportData, node *TextNode, ctx *Context, onCommand Comma
 		}
 		if ctx.fCmd {
 			ctx.cmd += segment
-		} else if !isLoopExploring(*ctx) {
+		} else if !isLoopExploring(ctx) {
 			outText += segment
 		}
 		appendTextToTagBuffers(segment, ctx, map[string]bool{"fCmd": ctx.fCmd})
@@ -373,7 +351,7 @@ func processText(data *ReportData, node *TextNode, ctx *Context, onCommand Comma
 		if idx < len(segments)-1 {
 
 			if ctx.fCmd {
-				cmdResultText, err := onCommand(*data, node, *ctx)
+				cmdResultText, err := onCommand(*data, node, ctx)
 				if err != nil {
 					if failFast {
 						return "", err
@@ -406,7 +384,7 @@ func splitTextByDelimiters(text string, delimiters [2]string) []string {
 	return result
 }
 
-var BufferKeys []string = []string{"p", "tr", "tc"}
+var BufferKeys []string = []string{P_TAG, TR_TAG, TC_TAG}
 
 func appendTextToTagBuffers(text string, ctx *Context, options map[string]bool) {
 	if ctx.fSeekQuery {
@@ -442,16 +420,42 @@ func formatErrors(errorsList []error) string {
 	return strings.Join(errMsgs, "; ")
 }
 
-func updateID(node *NonTextNode, ctx Context) {
+func updateID(node *NonTextNode, ctx *Context) {
 	ctx.imageAndShapeIdIncrement += 1
 	id := fmt.Sprint(ctx.imageAndShapeIdIncrement)
-	node.Attrs = map[string]Attribute{
-		"id": {
-			Value: id,
-		},
+	node.Attrs = map[string]string{
+		"id": id,
 	}
 }
 
+/*************  ✨ Codeium Command ⭐  *************/
+// NewContext returns a new Context.
+//
+// The imageAndShapeIdIncrement parameter is used to set the initial value of the
+// imageAndShapeIdIncrement field in the returned Context.
+//
+// The returned Context has the following fields initialized:
+//
+// - gCntIf and gCntEndIf are set to 0.
+// - level is set to 1.
+// - fCmd is set to false.
+// - cmd is set to an empty string.
+// - fSeekQuery is set to false.
+// - buffers is set to a map[string]*BufferStatus with the following keys: "p", "tr", and "tc".
+//   Each value is a BufferStatus with text, cmds, and fInsertedText set to empty strings and false, respectively.
+// - imageAndShapeIdIncrement is set to the value of the imageAndShapeIdIncrement parameter.
+// - images is set to an empty Images.
+// - linkId is set to 0.
+// - links is set to an empty Links.
+// - htmlId is set to 0.
+// - htmls is set to an empty Htmls.
+// - vars is set to an empty map[string]VarValue.
+// - loops is set to an empty []LoopStatus.
+// - fJump is set to false.
+// - shorthands is set to an empty map[string]string.
+// - options is set to the value of the options parameter.
+// - pIfCheckMap and trIfCheckMap are set to empty maps.
+/******  7b09f3c0-e7c6-42bd-9b69-b108a8b9c1e7  *******/
 func NewContext(options CreateReportOptions, imageAndShapeIdIncrement int) Context {
 
 	return Context{
@@ -461,10 +465,10 @@ func NewContext(options CreateReportOptions, imageAndShapeIdIncrement int) Conte
 		fCmd:       false,
 		cmd:        "",
 		fSeekQuery: false,
-		buffers: map[string]BufferStatus{
-			"p":  {text: "", cmds: "", fInsertedText: false},
-			"tr": {text: "", cmds: "", fInsertedText: false},
-			"tc": {text: "", cmds: "", fInsertedText: false},
+		buffers: map[string]*BufferStatus{
+			P_TAG:  {text: "", cmds: "", fInsertedText: false},
+			TR_TAG: {text: "", cmds: "", fInsertedText: false},
+			TC_TAG: {text: "", cmds: "", fInsertedText: false},
 		},
 		imageAndShapeIdIncrement: imageAndShapeIdIncrement,
 		images:                   Images{},

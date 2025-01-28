@@ -46,7 +46,6 @@ func main() {
 		// Otherwise unused but mandatory options
 		LiteralXmlDelimiter:        DEFAULT_LITERAL_XML_DELIMITER,
 		ProcessLineBreaks:          true,
-		MaximumWalkingDepth:        1000,
 		FailFast:                   false,
 		RejectNullish:              false,
 		ErrorHandler:               nil,
@@ -61,8 +60,10 @@ func main() {
 		LiteralXmlDelimiter: "||",
 	}, "")
 
+	fmt.Println(string(newXml))
+
 	// write
-	outputFile, err := os.Create("out.docx")
+	outputFile, err := os.Create("outdoc.docx")
 	if err != nil {
 		slog.Error("Erreur lors de la création du fichier ZIP de sortie :", "err", err)
 		return

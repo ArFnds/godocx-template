@@ -20,7 +20,7 @@ func ParseXml(templateXml string) (Node, error) {
 	var stack []Node
 
 	for {
-		token, err := decoder.Token()
+		token, err := decoder.RawToken()
 		if err == io.EOF {
 			break
 		}
@@ -30,7 +30,7 @@ func ParseXml(templateXml string) (Node, error) {
 
 		switch t := token.(type) {
 		case xml.StartElement:
-			node := NewNonTextNode(t.Name.Local, parseAttributes(t.Attr), nil)
+			node := NewNonTextNode(t.Name.Space+":"+t.Name.Local, parseAttributes(t.Attr), nil)
 
 			if currentNode != nil {
 				currentNode.(*NonTextNode).ChildNodes = append(currentNode.(*NonTextNode).ChildNodes, node)
@@ -78,7 +78,7 @@ func BuildXml(node Node, options XmlOptions, indent string) []byte {
 	case *NonTextNode:
 		var attrs strings.Builder
 		for key, value := range n.Attrs {
-			attrs.WriteString(fmt.Sprintf(` %s="%s"`, key, sanitizeAttr(value.Value)))
+			attrs.WriteString(fmt.Sprintf(` %s="%s"`, key, sanitizeAttr(value)))
 		}
 
 		hasChildren := len(n.Children()) > 0
@@ -107,13 +107,16 @@ func BuildXml(node Node, options XmlOptions, indent string) []byte {
 	return bytes.Join(xmlBuffers, []byte{})
 }
 
-func parseAttributes(attrs []xml.Attr) map[string]Attribute {
-	attrMap := make(map[string]Attribute)
+func parseAttributes(attrs []xml.Attr) map[string]string {
+	attrMap := make(map[string]string)
 	for _, attr := range attrs {
-		attrMap[attr.Name.Local] = Attribute{
-			Value:     attr.Value,
-			Extension: attr.Name.Space,
+		var key string
+		if attr.Name.Space == "" {
+			key = attr.Name.Local
+		} else {
+			key = attr.Name.Space + ":" + attr.Name.Local
 		}
+		attrMap[key] = attr.Value
 	}
 	return attrMap
 }

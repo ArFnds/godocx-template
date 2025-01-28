@@ -23,6 +23,9 @@ func ZipGetText(z *zip.ReadCloser, filename string) (string, error) {
 
 func ZipClone(reader *zip.ReadCloser, writer *zip.Writer) error {
 	for _, zipFile := range reader.File {
+		if zipFile.Name == "word/document.xml" {
+			continue
+		}
 		rc, err := zipFile.Open()
 		if err != nil {
 			return err

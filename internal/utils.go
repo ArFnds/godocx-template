@@ -88,14 +88,14 @@ func getNextSibling(node Node) Node {
 	return siblings[idx+1]
 }
 
-func getCurLoop(ctx Context) *LoopStatus {
+func getCurLoop(ctx *Context) *LoopStatus {
 	if len(ctx.loops) == 0 {
 		return nil
 	}
 	return &ctx.loops[len(ctx.loops)-1]
 }
 
-func isLoopExploring(ctx Context) bool {
+func isLoopExploring(ctx *Context) bool {
 	curLoop := getCurLoop(ctx)
 	return curLoop != nil && curLoop.idx < 0
 }

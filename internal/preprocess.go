@@ -14,7 +14,7 @@ func PreprocessTemplate(root Node, delimiter []string) (Node, error) {
 
 		// Add `xml:space` attr `preserve` to `w:t` tags
 		if isNonTextNode && nonTextNode.Tag == T_TAG {
-			nonTextNode.Attrs["xml:space"] = Attribute{Value: "preserve"}
+			nonTextNode.Attrs["xml:space"] = "preserve"
 		}
 
 		// Add a space if we reach a new `w:p` tag and there's an open node (hence, in a command)

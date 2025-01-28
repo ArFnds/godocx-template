@@ -1,8 +1,16 @@
 package internal
 
 const (
-	T_TAG = "t"
-	P_TAG = "p"
+	T_TAG        = "w:t"
+	R_TAG        = "w:r"
+	P_TAG        = "w:p"
+	RPR_TAG      = "w:rPr"
+	TBL_TAG      = "w:tbl"
+	TR_TAG       = "w:tr"
+	TC_TAG       = "w:tc"
+	DOCPR_TAG    = "wp:docPr"
+	VSHAPE_TAG   = "v:shape"
+	ALTCHUNK_TAG = "w:altChunk"
 )
 
 type Node interface {
@@ -10,6 +18,8 @@ type Node interface {
 	SetParent(Node)
 	Children() []Node
 	SetChildren([]Node)
+	PopChild()
+	AddChild(Node)
 }
 
 type BaseNode struct {
@@ -33,6 +43,16 @@ func (n *BaseNode) SetChildren(children []Node) {
 	n.ChildNodes = children
 }
 
+func (n *BaseNode) PopChild() {
+	if len(n.ChildNodes) > 0 {
+		n.ChildNodes = n.ChildNodes[:len(n.ChildNodes)-1]
+	}
+}
+
+func (n *BaseNode) AddChild(node Node) {
+	n.ChildNodes = append(n.ChildNodes, node)
+}
+
 type TextNode struct {
 	BaseNode
 	Text string
@@ -43,7 +63,7 @@ var _ Node = (*TextNode)(nil)
 type NonTextNode struct {
 	BaseNode
 	Tag   string
-	Attrs map[string]Attribute
+	Attrs map[string]string
 }
 
 var _ Node = (*NonTextNode)(nil)
@@ -54,7 +74,7 @@ func NewTextNode(text string) *TextNode {
 	}
 }
 
-func NewNonTextNode(tag string, attrs map[string]Attribute, children []Node) *NonTextNode {
+func NewNonTextNode(tag string, attrs map[string]string, children []Node) *NonTextNode {
 	node := &NonTextNode{
 		Tag:   tag,
 		Attrs: attrs,
@@ -64,11 +84,6 @@ func NewNonTextNode(tag string, attrs map[string]Attribute, children []Node) *No
 	}
 	node.ChildNodes = children
 	return node
-}
-
-type Attribute struct {
-	Value     string
-	Extension string
 }
 
 type BufferStatus struct {
@@ -85,7 +100,7 @@ type Context struct {
 	cmd              string
 	fSeekQuery       bool
 	query            string
-	buffers          map[string]BufferStatus
+	buffers          map[string]*BufferStatus
 	pendingImageNode *struct {
 		image   NonTextNode
 		caption []NonTextNode
