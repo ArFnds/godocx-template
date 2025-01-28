@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"regexp"
 	"slices"
 	"strings"
 )
@@ -17,18 +18,143 @@ type ReportOutput struct {
 
 type ReportData map[string]any
 
+func (rd ReportData) GetString(key string) (string, bool) {
+	value, ok := rd[key]
+	if ok {
+		valueStr, ok := value.(string)
+		return valueStr, ok
+	}
+	return "", false
+}
+
 type CommandProcessor func(data ReportData, node Node, ctx *Context) (string, error)
 
 var (
 	IncompleteConditionalStatementError = errors.New("IncompleteConditionalStatementError")
+	BUILT_IN_COMMANDS                   = []string{
+		"QUERY",
+		"CMD_NODE",
+		"ALIAS",
+		"FOR",
+		"END-FOR",
+		"IF",
+		"END-IF",
+		"INS",
+		"EXEC",
+		"IMAGE",
+		"LINK",
+		"HTML",
+	}
 )
 
 func ProduceReport(data ReportData, template Node, ctx Context) (*ReportOutput, error) {
 	return walkTemplate(data, template, &ctx, processCmd)
 }
 
+func notBuiltIns(cmd string) bool {
+	upperCmd := strings.ToUpper(cmd)
+	return !slices.ContainsFunc(BUILT_IN_COMMANDS, func(b string) bool { return strings.HasPrefix(upperCmd, b) })
+}
+
+func getCommand(command string, shorthands map[string]string, fixSmartQuotes bool) string {
+
+	cmd := strings.TrimSpace(command)
+	runes := []rune(cmd)
+
+	if runes[0] == '*' {
+		// TODO handle shorthands
+	} else if runes[0] == '=' {
+		cmd = "INS " + string(runes[1:])
+	} else if runes[0] == '!' {
+		cmd = "EXEC " + string(runes[1:])
+	} else if notBuiltIns(cmd) {
+		cmd = "INS " + cmd
+	}
+
+	if fixSmartQuotes {
+		replacer := strings.NewReplacer(
+			"“", `"`, // \u201C
+			"”", `"`, // \u201D
+			"„", `"`, // \u201E
+			"‘", "'", // \u2018
+			"’", "'", // \u2019
+			"‚", "'", // \u201A
+		)
+		cmd = replacer.Replace(cmd)
+	}
+
+	return strings.TrimSpace(cmd)
+}
+
+func splitCommand(cmd string) (cmdName string, rest string) {
+	// const cmdNameMatch = /^(\S+)\s*/.exec(cmd);
+	re := regexp.MustCompile(`^(\S+)\s*`)
+	cmdNameMatch := re.FindStringSubmatch(cmd)
+
+	if len(cmdNameMatch) > 0 {
+		cmdName = strings.ToUpper(cmdNameMatch[1])
+		rest = strings.TrimSpace(cmd[len(cmdName):])
+		return
+	}
+	return
+}
+
 func processCmd(data ReportData, node Node, ctx *Context) (string, error) {
-	return "Content", nil
+	cmd := getCommand(ctx.cmd, ctx.shorthands, ctx.options.FixSmartQuotes)
+	ctx.cmd = "" // flush the context
+
+	cmdName, rest := splitCommand(cmd)
+	//if (cmdName !== "CMD_NODE") logger.debug(`Processing cmd: ${cmd}`);
+	if cmdName != "CMD_NODE" {
+		slog.Debug("Processing cmd", "cmd", cmd)
+	}
+
+	if ctx.fSeekQuery {
+		if cmdName == "QUERY" {
+			ctx.query = rest
+		}
+		return "", nil
+	}
+
+	if cmdName == "QUERY" || cmdName == "CMD_NODE" {
+		// logger.debug(`Ignoring ${cmdName} command`);
+		// ...
+		// ALIAS name ANYTHING ELSE THAT MIGHT BE PART OF THE COMMAND...
+	} else if cmdName == "ALIAS" {
+	} else if cmdName == "FOR" || cmdName == "IF" {
+	} else if cmdName == "END-FOR" || cmdName == "END-IF" {
+	} else if cmdName == "INS" {
+		if !isLoopExploring(ctx) {
+			value, exists := data.GetString(rest)
+			if !exists && ctx.options.ErrorHandler != nil {
+				value = ctx.options.ErrorHandler(errors.New("KeyNotFound: "+rest), rest)
+			}
+
+			if ctx.options.ProcessLineBreaks {
+				literalXmlDelimiter := ctx.options.LiteralXmlDelimiter
+				if ctx.options.ProcessLineBreaksAsNewText {
+					splitByLineBreak := strings.Split(value, "\n")
+					LINE_BREAK := literalXmlDelimiter + `<w:br/>` + literalXmlDelimiter
+					END_OF_TEXT := literalXmlDelimiter + `</w:t>` + literalXmlDelimiter
+					START_OF_TEXT := literalXmlDelimiter + `<w:t xml:space="preserve">` + literalXmlDelimiter
+
+					value = strings.Join(splitByLineBreak, LINE_BREAK+START_OF_TEXT+END_OF_TEXT)
+				} else {
+					value = strings.ReplaceAll(value, "\n", literalXmlDelimiter+"<w:br/>"+literalXmlDelimiter)
+				}
+			}
+
+			return value, nil
+		}
+	} else if cmdName == "EXEC" {
+	} else if cmdName == "IMAGE" {
+	} else if cmdName == "LINK" {
+	} else if cmdName == "HTML" {
+	} else {
+		return "", errors.New("CommandSyntaxError: " + cmd)
+	}
+
+	return "", nil
 }
 
 func debugPrintNode(node Node) string {
@@ -339,8 +465,11 @@ func processText(data *ReportData, node *TextNode, ctx *Context, onCommand Comma
 
 	for idx, segment := range segments {
 		if idx > 0 {
+			// Include the separators in the `buffers` field (used for deleting paragraphs if appropriate)
 			appendTextToTagBuffers(cmdDelimiter[0], ctx, map[string]bool{"fCmd": true})
 		}
+		// Append segment either to the `ctx.cmd` buffer (to be executed), if we are in "command mode",
+		// or to the output text
 		if ctx.fCmd {
 			ctx.cmd += segment
 		} else if !isLoopExploring(ctx) {
@@ -348,6 +477,8 @@ func processText(data *ReportData, node *TextNode, ctx *Context, onCommand Comma
 		}
 		appendTextToTagBuffers(segment, ctx, map[string]bool{"fCmd": ctx.fCmd})
 
+		// If there are more segments, execute the command (if we are in "command mode"),
+		// and toggle "command mode"
 		if idx < len(segments)-1 {
 
 			if ctx.fCmd {
@@ -408,7 +539,6 @@ func appendTextToTagBuffers(text string, ctx *Context, options map[string]bool) 
 		if fInsertedText {
 			buf.fInsertedText = true
 		}
-		ctx.buffers[key] = buf
 	}
 }
 
@@ -428,34 +558,6 @@ func updateID(node *NonTextNode, ctx *Context) {
 	}
 }
 
-/*************  ✨ Codeium Command ⭐  *************/
-// NewContext returns a new Context.
-//
-// The imageAndShapeIdIncrement parameter is used to set the initial value of the
-// imageAndShapeIdIncrement field in the returned Context.
-//
-// The returned Context has the following fields initialized:
-//
-// - gCntIf and gCntEndIf are set to 0.
-// - level is set to 1.
-// - fCmd is set to false.
-// - cmd is set to an empty string.
-// - fSeekQuery is set to false.
-// - buffers is set to a map[string]*BufferStatus with the following keys: "p", "tr", and "tc".
-//   Each value is a BufferStatus with text, cmds, and fInsertedText set to empty strings and false, respectively.
-// - imageAndShapeIdIncrement is set to the value of the imageAndShapeIdIncrement parameter.
-// - images is set to an empty Images.
-// - linkId is set to 0.
-// - links is set to an empty Links.
-// - htmlId is set to 0.
-// - htmls is set to an empty Htmls.
-// - vars is set to an empty map[string]VarValue.
-// - loops is set to an empty []LoopStatus.
-// - fJump is set to false.
-// - shorthands is set to an empty map[string]string.
-// - options is set to the value of the options parameter.
-// - pIfCheckMap and trIfCheckMap are set to empty maps.
-/******  7b09f3c0-e7c6-42bd-9b69-b108a8b9c1e7  *******/
 func NewContext(options CreateReportOptions, imageAndShapeIdIncrement int) Context {
 
 	return Context{

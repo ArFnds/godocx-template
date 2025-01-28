@@ -125,7 +125,7 @@ type Context struct {
 	trIfCheckMap map[Node]string
 }
 
-type ErrorHandler = func(err error, rawCode string) any
+type ErrorHandler = func(err error, rawCode string) string
 
 type CreateReportOptions struct {
 	CmdDelimiter        [2]string

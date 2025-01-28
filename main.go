@@ -10,12 +10,13 @@ import (
 )
 
 const (
+	DEFAULT_CMD_DELIMITER         = "+++"
 	DOCUMENT_PATH                 = "word/document.xml"
 	DEFAULT_LITERAL_XML_DELIMITER = "||"
 )
 
 func main() {
-	slog.SetLogLoggerLevel(slog.LevelDebug)
+	slog.SetLogLoggerLevel(slog.LevelInfo)
 	// open the defaultTemplate as a zipTemplate file
 	zipTemplate, err := zip.OpenReader("defaultTemplate.docx")
 	if err != nil {
@@ -35,13 +36,15 @@ func main() {
 		panic(err)
 	}
 
-	preppedTemplate, err := PreprocessTemplate(root, []string{"+++", "+++"})
+	preppedTemplate, err := PreprocessTemplate(root, []string{DEFAULT_CMD_DELIMITER, DEFAULT_CMD_DELIMITER})
 	if err != nil {
 		panic(err)
 	}
 
-	result, err := ProduceReport(map[string]any{}, preppedTemplate, NewContext(CreateReportOptions{
-		CmdDelimiter: [2]string{"+++", "+++"},
+	result, err := ProduceReport(ReportData{
+		"folderName": "test folder",
+	}, preppedTemplate, NewContext(CreateReportOptions{
+		CmdDelimiter: [2]string{DEFAULT_CMD_DELIMITER, DEFAULT_CMD_DELIMITER},
 
 		// Otherwise unused but mandatory options
 		LiteralXmlDelimiter:        DEFAULT_LITERAL_XML_DELIMITER,
@@ -59,8 +62,6 @@ func main() {
 	newXml := BuildXml(result.Report, XmlOptions{
 		LiteralXmlDelimiter: "||",
 	}, "")
-
-	fmt.Println(string(newXml))
 
 	// write
 	outputFile, err := os.Create("outdoc.docx")
