@@ -55,17 +55,22 @@ func CreateReport(data *ReportData) {
 		panic(err)
 	}
 
-	//numImages := len(result.Images)
+	numImages := len(result.Images)
 	internal.ProcessImages(result.Images, parseResult.MainDocument, parseResult.ZipReader, writer)
 
 	newXml := internal.BuildXml(result.Report, internal.XmlOptions{
 		LiteralXmlDelimiter: internal.DEFAULT_LITERAL_XML_DELIMITER,
 	}, "")
 
-	err = internal.ZipClone(parseResult.ZipReader, writer, []string{
+	excludes := []string{
 		"word/document.xml",
-		"word/_rels/document.xml.rels",
-	})
+	}
+
+	if numImages > 0 {
+		excludes = append(excludes, "word/_rels/document.xml.rels")
+	}
+
+	err = internal.ZipClone(parseResult.ZipReader, writer, excludes)
 	if err != nil {
 		fmt.Println("Erreur lors de la clonage du fichier ZIP de sortie :", err)
 		return
