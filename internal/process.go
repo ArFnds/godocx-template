@@ -19,13 +19,9 @@ type ReportOutput struct {
 
 type ReportData map[string]any
 
-func (rd ReportData) GetString(key string) (string, bool) {
-	value, ok := rd[key]
-	if ok {
-		valueStr, ok := value.(string)
-		return valueStr, ok
-	}
-	return "", false
+func (rd ReportData) GetValue(key string) (value VarValue, ok bool) {
+	value, ok = rd[key]
+	return
 }
 
 func (rd ReportData) GetArray(key string) ([]any, bool) {
@@ -317,35 +313,35 @@ func processCmd(data ReportData, node Node, ctx *Context) (string, error) {
 	} else if cmdName == "INS" {
 		if !isLoopExploring(ctx) {
 
-			var value string
+			var varValue VarValue
 			var exists bool
 
 			if rest[0] != '$' {
-				value, exists = data.GetString(rest)
+				varValue, exists = data.GetValue(rest)
 			} else {
 				splited := strings.Split(rest, ".")
 
-				var varValue VarValue
 				varValue, exists = ctx.vars[splited[0]]
-				if exists && len(splited) <= 2 {
-					if len(splited) == 1 {
-						value = fmt.Sprintf("%v", varValue)
-					} else if len(splited) == 2 {
-						reflectValue := reflect.ValueOf(varValue)
-						if reflectValue.Kind() == reflect.Struct {
-							if fieldValue := reflectValue.FieldByName(splited[1]); fieldValue.IsValid() {
-								value = fmt.Sprintf("%v", fieldValue)
-							} else {
-								exists = false
-							}
+				if exists && len(splited) == 2 {
+					reflectValue := reflect.ValueOf(varValue)
+					if reflectValue.Kind() == reflect.Map {
+						reflectKey := reflect.ValueOf(splited[1])
+						if fieldValue := reflectValue.MapIndex(reflectKey); fieldValue.IsValid() {
+							varValue = fieldValue
 						} else {
 							exists = false
 						}
+					} else {
+						exists = false
+
 					}
 				}
 			}
 
-			if !exists && ctx.options.ErrorHandler != nil {
+			var value string
+			if exists {
+				value = fmt.Sprintf("%v", varValue)
+			} else if ctx.options.ErrorHandler != nil {
 				value = ctx.options.ErrorHandler(errors.New("KeyNotFound: "+rest), rest)
 			}
 
