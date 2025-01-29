@@ -7,6 +7,12 @@ import (
 	"strings"
 )
 
+func AddChild(parent Node, child Node) Node {
+	parent.AddChild(child)
+	child.SetParent(parent)
+	return child
+}
+
 // CloneNodeWithoutChildren crée une copie d'un noeud sans ses enfants
 func CloneNodeWithoutChildren(node Node) Node {
 	switch nd := node.(type) {

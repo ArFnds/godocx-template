@@ -3,6 +3,7 @@ package internal
 import (
 	"archive/zip"
 	"io"
+	"slices"
 
 	_ "golang.org/x/text/encoding/charmap"
 )
@@ -21,9 +22,9 @@ func ZipGetText(z *zip.ReadCloser, filename string) (string, error) {
 	return string(data), nil
 }
 
-func ZipClone(reader *zip.ReadCloser, writer *zip.Writer) error {
+func ZipClone(reader *zip.ReadCloser, writer *zip.Writer, except []string) error {
 	for _, zipFile := range reader.File {
-		if zipFile.Name == "word/document.xml" {
+		if slices.Contains(except, zipFile.Name) {
 			continue
 		}
 		rc, err := zipFile.Open()
@@ -43,11 +44,11 @@ func ZipClone(reader *zip.ReadCloser, writer *zip.Writer) error {
 	return nil
 }
 
-func ZipSetText(z *zip.Writer, filename string, data string) error {
+func ZipSet(z *zip.Writer, filename string, data []byte) error {
 	w, err := z.Create(filename)
 	if err != nil {
 		return err
 	}
-	_, err = w.Write([]byte(data))
+	_, err = w.Write(data)
 	return err
 }

@@ -38,6 +38,14 @@ func (rd ReportData) GetArray(key string) ([]any, bool) {
 	return nil, false
 }
 
+func (rd ReportData) GetImage(key string) (*ImagePars, bool) {
+	value, ok := rd[key]
+	if ok {
+		return value.(*ImagePars), true
+	}
+	return nil, false
+}
+
 type CommandProcessor func(data ReportData, node Node, ctx *Context) (string, error)
 
 var (
@@ -59,7 +67,7 @@ var (
 	}
 )
 
-func ProduceReport(data ReportData, template Node, ctx Context) (*ReportOutput, error) {
+func ProduceReport(data *ReportData, template Node, ctx Context) (*ReportOutput, error) {
 	return walkTemplate(data, template, &ctx, processCmd)
 }
 
@@ -252,6 +260,144 @@ func processEndForIf(node Node, ctx *Context, cmd string, cmdName string, cmdRes
 	return nil
 }
 
+func validateImagePars(pars *ImagePars) error {
+	err := validateExtension(pars.Extension)
+	return err
+}
+
+func validateExtension(ext string) error {
+	if !slices.Contains(ImageExtensions, ext) {
+		return fmt.Errorf("An extension (one of %v) needs to be provided when providing an image or a thumbnail.", ImageExtensions)
+	}
+	return nil
+}
+
+func imageToContext(ctx *Context, img *Image) string {
+	// TODO revalidate ? validateImage(img)
+	ctx.imageAndShapeIdIncrement += 1
+	id := fmt.Sprint(ctx.imageAndShapeIdIncrement)
+	relId := fmt.Sprintf("img%s", id)
+	ctx.images[relId] = img
+	return relId
+}
+
+func getImageData(pars *ImagePars) *Image {
+	return &Image{
+		Extension: pars.Extension,
+		Data:      pars.Data,
+	}
+}
+
+func processImage(ctx *Context, imagePars *ImagePars) error {
+	err := validateImagePars(imagePars)
+	if err != nil {
+		return err
+	}
+
+	cx := int(imagePars.Width * 360e3)
+	cy := int(imagePars.Height * 360e3)
+
+	imgRelId := imageToContext(ctx, getImageData(imagePars))
+	id := fmt.Sprint(ctx.imageAndShapeIdIncrement)
+	alt := imagePars.Alt
+	if alt == "" {
+		alt = "desc"
+	}
+	node := NewNonTextNode
+
+	extNodes := make([]Node, 1)
+	extNodes[0] = node("a:ext", map[string]string{
+		"uri": "{28A0092B-C50C-407E-A947-70E740481C1C}",
+	}, []Node{
+		node("a14:useLocalDpi", map[string]string{
+			"xmlns:a14": "http://schemas.microsoft.com/office/drawing/2010/main",
+			"val":       "0",
+		}, nil),
+	})
+	// http://officeopenxml.com/drwSp-rotate.php
+	// Values are in 60,000ths of a degree, with positive angles moving clockwise or towards the positive y-axis.
+	var rot string
+	if imagePars.Rotation != 0 {
+		rot = fmt.Sprintf("-%d", imagePars.Rotation*60e3)
+	}
+
+	// TODO gestion des SVG
+	//if (ctx.images[imgRelId].extension === ".svg") {
+	rotAttrs := map[string]string{}
+	if rot != "" {
+		rotAttrs["rot"] = rot
+	}
+
+	pic := node(
+		"pic:pic",
+		map[string]string{"xmlns:pic": "http://schemas.openxmlformats.org/drawingml/2006/picture"},
+		[]Node{
+			node("pic:nvPicPr", map[string]string{}, []Node{
+				node("pic:cNvPr", map[string]string{"id": "0", "name": `Picture ` + id, "descr": alt}, nil),
+				node("pic:cNvPicPr", map[string]string{}, []Node{
+					node("a:picLocks", map[string]string{"noChangeAspect": "1", "noChangeArrowheads": "1"}, nil),
+				}),
+			}),
+			node("pic:blipFill", map[string]string{}, []Node{
+				node("a:blip", map[string]string{"r:embed": imgRelId, "cstate": "print"}, []Node{
+					node("a:extLst", map[string]string{}, extNodes),
+				}),
+				node("a:srcRect", map[string]string{}, nil),
+				node("a:stretch", map[string]string{}, []Node{node("a:fillRect", map[string]string{}, nil)}),
+			}),
+			node("pic:spPr", map[string]string{"bwMode": "auto"}, []Node{
+				node("a:xfrm", rotAttrs, []Node{
+					node("a:off", map[string]string{"x": "0", "y": "0"}, nil),
+					node("a:ext", map[string]string{"cx": fmt.Sprint(cx), "cy": fmt.Sprint(cy)}, nil),
+				}),
+				node("a:prstGeom", map[string]string{"prst": "rect"}, []Node{node("a:avLst", map[string]string{}, nil)}),
+				node("a:noFill", map[string]string{}, nil),
+				node("a:ln", map[string]string{}, []Node{node("a:noFill", map[string]string{}, nil)}),
+			}),
+		},
+	)
+	drawing := node("w:drawing", map[string]string{}, []Node{
+		node("wp:inline", map[string]string{"distT": "0", "distB": "0", "distL": "0", "distR": "0"}, []Node{
+			node("wp:extent", map[string]string{"cx": fmt.Sprint(cx), "cy": fmt.Sprint(cy)}, nil),
+			node("wp:docPr", map[string]string{"id": id, "name": `Picture ` + id, "descr": alt}, nil),
+			node("wp:cNvGraphicFramePr", map[string]string{}, []Node{
+				node("a:graphicFrameLocks", map[string]string{
+					"xmlns:a":        "http://schemas.openxmlformats.org/drawingml/2006/main",
+					"noChangeAspect": "1",
+				}, nil),
+			}),
+			node(
+				"a:graphic",
+				map[string]string{"xmlns:a": "http://schemas.openxmlformats.org/drawingml/2006/main"},
+				[]Node{
+					node(
+						"a:graphicData",
+						map[string]string{"uri": "http://schemas.openxmlformats.org/drawingml/2006/picture"},
+						[]Node{pic},
+					),
+				},
+			),
+		}),
+	})
+
+	ctx.pendingImageNode = &struct {
+		image   *NonTextNode
+		caption []*NonTextNode
+	}{
+		image:   drawing,
+		caption: nil,
+	}
+
+	if imagePars.Caption != "" {
+		ctx.pendingImageNode.caption = []*NonTextNode{
+			node("w:br", map[string]string{}, nil),
+			node("w:t", map[string]string{}, []Node{NewTextNode(imagePars.Caption)}),
+		}
+	}
+
+	return nil
+}
+
 func findParentPorTrNode(node Node) (resultNode Node) {
 	parentNode := node.Parent()
 
@@ -363,7 +509,17 @@ func processCmd(data ReportData, node Node, ctx *Context) (string, error) {
 			return value, nil
 		}
 	} else if cmdName == "EXEC" {
+		// IMAGE <code>
 	} else if cmdName == "IMAGE" {
+		if !isLoopExploring(ctx) {
+			imgPars, ok := data.GetImage(rest)
+			if ok {
+				err := processImage(ctx, imgPars)
+				if err != nil {
+					return "", fmt.Errorf("ImageError: %w", err)
+				}
+			}
+		}
 	} else if cmdName == "LINK" {
 	} else if cmdName == "HTML" {
 	} else {
@@ -383,7 +539,7 @@ func debugPrintNode(node Node) string {
 		return "<unknown>"
 	}
 }
-func walkTemplate(data ReportData, template Node, ctx *Context, processor CommandProcessor) (report *ReportOutput, retErr error) {
+func walkTemplate(data *ReportData, template Node, ctx *Context, processor CommandProcessor) (report *ReportOutput, retErr error) {
 	out := CloneNodeWithoutChildren(template.(*NonTextNode))
 
 	nodeIn := template
@@ -499,11 +655,11 @@ func walkTemplate(data ReportData, template Node, ctx *Context, processor Comman
 					imgNode.SetParent(parent)
 					// pop last children
 					parent.PopChild()
-					parent.SetChildren(append(parent.Children(), &imgNode))
+					parent.SetChildren(append(parent.Children(), imgNode))
 					if len(captionNodes) > 0 {
 						for _, captionNode := range captionNodes {
 							captionNode.SetParent(parent)
-							parent.SetChildren(append(parent.Children(), &captionNode))
+							parent.SetChildren(append(parent.Children(), captionNode))
 						}
 					}
 
@@ -602,7 +758,7 @@ func walkTemplate(data ReportData, template Node, ctx *Context, processor Comman
 				newNodeTag := nodeInNTxt.Tag
 				if !isLoopExploring(ctx) && (newNodeTag == DOCPR_TAG || newNodeTag == VSHAPE_TAG) {
 					slog.Debug("detected a - ", "newNode", debugPrintNode(newNode))
-					//updateID(newNode.(*NonTextNode), ctx)
+					updateID(newNode.(*NonTextNode), ctx)
 				}
 			}
 
@@ -611,7 +767,7 @@ func walkTemplate(data ReportData, template Node, ctx *Context, processor Comman
 			nodeInTxt, isNodeInTxt := nodeIn.(*TextNode)
 			nodeInParentNTxt, isNodeInParentNTxt := parent.(*NonTextNode)
 			if isNodeInTxt && parent != nil && isNodeInParentNTxt && nodeInParentNTxt.Tag == T_TAG {
-				result, err := processText(&data, nodeInTxt, ctx, processor)
+				result, err := processText(data, nodeInTxt, ctx, processor)
 				if err != nil {
 					retErr = errors.Join(retErr, err)
 				} else {
@@ -769,12 +925,10 @@ func formatErrors(errorsList []error) string {
 	return strings.Join(errMsgs, "; ")
 }
 
-func updateID(node *NonTextNode, ctx *Context) {
+func updateID(newNode *NonTextNode, ctx *Context) {
 	ctx.imageAndShapeIdIncrement += 1
 	id := fmt.Sprint(ctx.imageAndShapeIdIncrement)
-	node.Attrs = map[string]string{
-		"id": id,
-	}
+	newNode.Attrs["id"] = id
 }
 
 func NewContext(options CreateReportOptions, imageAndShapeIdIncrement int) Context {

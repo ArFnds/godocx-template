@@ -115,8 +115,8 @@ type Context struct {
 	query            string
 	buffers          map[string]*BufferStatus
 	pendingImageNode *struct {
-		image   NonTextNode
-		caption []NonTextNode
+		image   *NonTextNode
+		caption []*NonTextNode
 	}
 	imageAndShapeIdIncrement int
 	images                   Images
@@ -158,10 +158,34 @@ type CreateReportOptions struct {
 type VarValue any
 
 type Image struct {
-	extension string // [".png", ".gif", ".jpg", ".jpeg", ".svg"]
-	data      string
+	Extension string // [".png", ".gif", ".jpg", ".jpeg", ".svg"]
+	Data      []byte
 }
-type Images map[string]Image
+type Images map[string]*Image
+
+var ImageExtensions []string = []string{
+	".png",
+	".gif",
+	".jpg",
+	".jpeg",
+	".svg",
+}
+
+type Thumbnail struct {
+	Width  int
+	Height int
+	Data   []byte // ou string, selon l'utilisation
+}
+type ImagePars struct {
+	Width     float32    `json:"width"`
+	Height    float32    `json:"height"`
+	Data      []byte     `json:"data"`                // ou string, selon l'utilisation
+	Thumbnail *Thumbnail `json:"thumbnail,omitempty"` // Pointeur pour gérer l'optionalité
+	Extension string     `json:"extension"`           // ".png", ".gif", ".jpg", ".jpeg", ".svg"
+	Alt       string     `json:"alt,omitempty"`       // Champ optionnel
+	Rotation  int        `json:"rotation,omitempty"`  // Champ optionnel
+	Caption   string     `json:"caption,omitempty"`   // Champ optionnel
+}
 
 type LoopStatus struct {
 	refNode      Node

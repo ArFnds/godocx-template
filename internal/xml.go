@@ -30,7 +30,11 @@ func ParseXml(templateXml string) (Node, error) {
 
 		switch t := token.(type) {
 		case xml.StartElement:
-			node := NewNonTextNode(t.Name.Space+":"+t.Name.Local, parseAttributes(t.Attr), nil)
+			tag := t.Name.Local
+			if t.Name.Space != "" {
+				tag = t.Name.Space + ":" + t.Name.Local
+			}
+			node := NewNonTextNode(tag, parseAttributes(t.Attr), nil)
 
 			if currentNode != nil {
 				currentNode.(*NonTextNode).ChildNodes = append(currentNode.(*NonTextNode).ChildNodes, node)
