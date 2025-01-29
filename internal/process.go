@@ -42,6 +42,7 @@ type CommandProcessor func(data ReportData, node Node, ctx *Context) (string, er
 
 var (
 	IncompleteConditionalStatementError = errors.New("IncompleteConditionalStatementError")
+	IgnoreError                         = errors.New("ignore")
 	BUILT_IN_COMMANDS                   = []string{
 		"QUERY",
 		"CMD_NODE",
@@ -295,7 +296,7 @@ func processCmd(data ReportData, node Node, ctx *Context) (string, error) {
 
 	if cmdName == "QUERY" || cmdName == "CMD_NODE" {
 		// logger.debug(`Ignoring ${cmdName} command`);
-		// ...
+		return "", IgnoreError
 		// ALIAS name ANYTHING ELSE THAT MIGHT BE PART OF THE COMMAND...
 	} else if cmdName == "ALIAS" {
 
@@ -369,7 +370,7 @@ func processCmd(data ReportData, node Node, ctx *Context) (string, error) {
 		return "", errors.New("CommandSyntaxError: " + cmd)
 	}
 
-	return "", nil
+	return "", IgnoreError
 }
 
 func debugPrintNode(node Node) string {
@@ -661,7 +662,7 @@ func walkTemplate(data ReportData, template Node, ctx *Context, processor Comman
 		Images: ctx.images,
 		Links:  ctx.links,
 		Htmls:  ctx.htmls,
-	}, nil
+	}, nil // TODO return retErr ici
 
 }
 
@@ -701,13 +702,13 @@ func processText(data *ReportData, node *TextNode, ctx *Context, onCommand Comma
 					slog.Debug("Here")
 				}
 				cmdResultText, err := onCommand(*data, node, ctx)
-				if err != nil {
+				if err != nil && err != IgnoreError {
 					if failFast {
 						return "", err
 					} else {
 						errorsList = append(errorsList, err)
 					}
-				} else {
+				} else if err != IgnoreError {
 					outText += cmdResultText
 					appendTextToTagBuffers(cmdResultText, ctx, map[string]bool{
 						"fCmd":          false,

@@ -17,19 +17,20 @@ const (
 )
 
 var data = ReportData{
-	"folderName":         "SCI RUE HENRI VIGNEAU",
-	"address":            "Immeuble Trinité, commune de MERIGNAC (33700)9 Av Maurice Levy",
-	"cadastralCapacity":  "00 ha 33 a 69 ca",
-	"cadastralSection":   "AL",
-	"cadastralCoumpound": "525",
-	"cadastralPrefixe":   "000",
+	"dateOfDay":         time.Now().Local().Format("02/01/2006"),
+	"acceptDate":        time.Now().Local().Format("02/01/2006"),
+	"folderName":        "SCI RUE HENRI VIGNEAU",
+	"address":           "Immeuble Trinité, commune de MERIGNAC (33700)9 Av Maurice Levy",
+	"cadastralCapacity": "00 ha 33 a 69 ca",
+	"cadastralSection":  "AL",
+	"cadastralNumber":   "525",
+	"cadastralPrefixe":  "000",
 	// mission
-	"missionary":            "Monsieur Noel LORENZO",
+	"missionnary":           "Monsieur Noel LORENZO",
 	"entrepriseMissionnary": "SCI HENRI VIGNEAU",
-	"acceptDate":            time.Now(),
 	// Visite
-	"inPressenceOf": "Monsieur Noel LORENZO",
-	"visiteDate":    time.Now(),
+	"inPresenceOf": "Monsieur Noel LORENZO",
+	"visiteDate":   time.Now().Local().Format("02/01/2006"),
 	// immeuble
 	"imDescription": `Immeuble en pleine propriété comprenant :
 Un bâtiment élevé sur un rez-de-chaussée et de trois étages avec roof Top.  
