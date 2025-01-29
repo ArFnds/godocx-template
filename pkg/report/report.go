@@ -2,9 +2,8 @@ package report
 
 import (
 	"archive/zip"
+	"bytes"
 	"fmt"
-	"log/slog"
-	"os"
 
 	"github.com/ArFnds/godocx-template/internal"
 )
@@ -13,24 +12,17 @@ const (
 	DEFAULT_CMD_DELIMITER = "+++"
 )
 
-func CreateReport(data *ReportData) {
-	slog.SetLogLoggerLevel(slog.LevelDebug)
-
+func CreateReport(templatePath string, data *ReportData) ([]byte, error) {
 	// xml parse the document
-	parseResult, err := internal.ParseTemplate("defaultTemplate.docx")
+	parseResult, err := internal.ParseTemplate(templatePath)
 	if err != nil {
-		panic(err)
+		return nil, fmt.Errorf("ParseTemplate failed: %w", err)
 	}
 	defer parseResult.ZipReader.Close()
-	// write
-	outputFile, err := os.Create("outdoc.docx")
-	if err != nil {
-		slog.Error("Erreur lors de la création du fichier ZIP de sortie :", "err", err)
-		return
-	}
-	defer outputFile.Close()
 
-	writer := zip.NewWriter(outputFile)
+	outBuffer := new(bytes.Buffer)
+
+	writer := zip.NewWriter(outBuffer)
 	defer writer.Close()
 
 	preppedTemplate, err := internal.PreprocessTemplate(parseResult.Root, []string{DEFAULT_CMD_DELIMITER, DEFAULT_CMD_DELIMITER})
@@ -72,14 +64,21 @@ func CreateReport(data *ReportData) {
 
 	err = internal.ZipClone(parseResult.ZipReader, writer, excludes)
 	if err != nil {
-		fmt.Println("Erreur lors de la clonage du fichier ZIP de sortie :", err)
-		return
+		return nil, fmt.Errorf("Erreur lors de la clonage du fichier ZIP de sortie : %w", err)
 	}
 
 	err = internal.ZipSet(writer, "word/document.xml", newXml)
 	if err != nil {
-		fmt.Println("Erreur lors de la clonage du fichier ZIP de sortie :", err)
-		return
+		return nil, fmt.Errorf("Erreur lors de la clonage du fichier ZIP de sortie : %w", err)
 	}
 
+	err = writer.Flush()
+	if err != nil {
+		return nil, fmt.Errorf("Erreur lors du flush du writer : %w", err)
+	}
+	err = writer.Close()
+	if err != nil {
+		return nil, fmt.Errorf("Erreur lors de la fermeture du writer : %w", err)
+	}
+	return outBuffer.Bytes(), nil
 }
