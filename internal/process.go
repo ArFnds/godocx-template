@@ -831,14 +831,14 @@ func processText(data *ReportData, node *TextNode, ctx *Context, onCommand Comma
 		return "", nil
 	}
 
-	segments := splitTextByDelimiters(text, cmdDelimiter)
+	segments := splitTextByDelimiters(text, *cmdDelimiter)
 	outText := ""
 	errorsList := []error{}
 
 	for idx, segment := range segments {
 		if idx > 0 {
 			// Include the separators in the `buffers` field (used for deleting paragraphs if appropriate)
-			appendTextToTagBuffers(cmdDelimiter[0], ctx, map[string]bool{"fCmd": true})
+			appendTextToTagBuffers(cmdDelimiter.Open, ctx, map[string]bool{"fCmd": true})
 		}
 		// Append segment either to the `ctx.cmd` buffer (to be executed), if we are in "command mode",
 		// or to the output text
@@ -881,11 +881,11 @@ func processText(data *ReportData, node *TextNode, ctx *Context, onCommand Comma
 	return outText, nil
 }
 
-func splitTextByDelimiters(text string, delimiters [2]string) []string {
-	segments := strings.Split(text, delimiters[0])
+func splitTextByDelimiters(text string, delimiters Delimiters) []string {
+	segments := strings.Split(text, delimiters.Open)
 	var result []string
 	for _, seg := range segments {
-		result = append(result, strings.Split(seg, delimiters[1])...)
+		result = append(result, strings.Split(seg, delimiters.Close)...)
 	}
 	return result
 }

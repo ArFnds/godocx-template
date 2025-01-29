@@ -1,12 +1,12 @@
 package internal
 
-func PreprocessTemplate(root Node, delimiter []string) (Node, error) {
+func PreprocessTemplate(root Node, delimiter Delimiters) (Node, error) {
 
 	node := root
 	fCmd := false
 	var openNode *TextNode = nil
 	idxDelimiter := 0
-	placeholderCmd := delimiter[0] + `CMD_NODE` + delimiter[1]
+	placeholderCmd := delimiter.Open + `CMD_NODE` + delimiter.Close
 
 	for node != nil {
 		nonTextNode, isNonTextNode := node.(*NonTextNode)
@@ -34,9 +34,9 @@ func PreprocessTemplate(root Node, delimiter []string) (Node, error) {
 
 					var currentDelimiter []rune
 					if fCmd {
-						currentDelimiter = []rune(delimiter[1])
+						currentDelimiter = []rune(delimiter.Close)
 					} else {
-						currentDelimiter = []rune(delimiter[0])
+						currentDelimiter = []rune(delimiter.Open)
 					}
 
 					if c == currentDelimiter[idxDelimiter] {

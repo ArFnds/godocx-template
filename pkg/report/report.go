@@ -12,7 +12,18 @@ const (
 	DEFAULT_CMD_DELIMITER = "+++"
 )
 
-func CreateReport(templatePath string, data *ReportData) ([]byte, error) {
+// CreateReport generates a report document based on a given template and data.
+// It parses the template file, processes any commands within the template
+// using provided data, and outputs the final document as a byte slice.
+//
+// Parameters:
+//   - templatePath: The file path to the template document.
+//   - data: A pointer to ReportData containing data to be inserted into the template.
+//
+// Returns:
+//   - A byte slice representing the generated document.
+//   - An error if any occurs during template parsing, processing, or document generation.
+func CreateReport(templatePath string, data *ReportData, options CreateReportOptions) ([]byte, error) {
 	// xml parse the document
 	parseResult, err := internal.ParseTemplate(templatePath)
 	if err != nil {
@@ -25,23 +36,19 @@ func CreateReport(templatePath string, data *ReportData) ([]byte, error) {
 	writer := zip.NewWriter(outBuffer)
 	defer writer.Close()
 
-	preppedTemplate, err := internal.PreprocessTemplate(parseResult.Root, []string{DEFAULT_CMD_DELIMITER, DEFAULT_CMD_DELIMITER})
+	if options.CmdDelimiter == nil {
+		options.CmdDelimiter = &internal.Delimiters{
+			Open:  DEFAULT_CMD_DELIMITER,
+			Close: DEFAULT_CMD_DELIMITER,
+		}
+	}
+
+	preppedTemplate, err := internal.PreprocessTemplate(parseResult.Root, *options.CmdDelimiter)
 	if err != nil {
 		panic(err)
 	}
 
-	result, err := internal.ProduceReport(data, preppedTemplate, internal.NewContext(internal.CreateReportOptions{
-		CmdDelimiter: [2]string{DEFAULT_CMD_DELIMITER, DEFAULT_CMD_DELIMITER},
-
-		// Otherwise unused but mandatory options
-		LiteralXmlDelimiter:        internal.DEFAULT_LITERAL_XML_DELIMITER,
-		ProcessLineBreaks:          true,
-		FailFast:                   false,
-		RejectNullish:              false,
-		ErrorHandler:               nil,
-		FixSmartQuotes:             false,
-		ProcessLineBreaksAsNewText: false,
-	}, 73086257))
+	result, err := internal.ProduceReport(data, preppedTemplate, internal.NewContext(options, 73086257))
 	//TODO ^ max id
 	if err != nil {
 		panic(err)

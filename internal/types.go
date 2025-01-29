@@ -140,8 +140,13 @@ type Context struct {
 
 type ErrorHandler = func(err error, rawCode string) string
 
+type Delimiters struct {
+	Open  string
+	Close string
+}
+
 type CreateReportOptions struct {
-	CmdDelimiter        [2]string
+	CmdDelimiter        *Delimiters
 	LiteralXmlDelimiter string
 	ProcessLineBreaks   bool
 	//noSandbox          bool

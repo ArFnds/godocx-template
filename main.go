@@ -84,7 +84,17 @@ Sanitaires
 		"shortConclusion": "Il sera retenu une valeur au jour de la mission de 5.600.000,00€ (Cinq millions six cent milles €uros)",
 	}
 
-	outBuf, err := CreateReport("defaultTemplate.docx", &data)
+	options := CreateReportOptions{
+		// Otherwise unused but mandatory options
+		ProcessLineBreaks:          true,
+		FailFast:                   false,
+		RejectNullish:              false,
+		ErrorHandler:               nil,
+		FixSmartQuotes:             false,
+		ProcessLineBreaksAsNewText: false,
+	}
+
+	outBuf, err := CreateReport("defaultTemplate.docx", &data, options)
 	if err != nil {
 		panic(err)
 	}
