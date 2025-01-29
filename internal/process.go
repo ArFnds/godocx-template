@@ -316,22 +316,27 @@ func processCmd(data ReportData, node Node, ctx *Context) (string, error) {
 		// INS <expression>
 	} else if cmdName == "INS" {
 		if !isLoopExploring(ctx) {
-			value, exists := data.GetString(rest)
 
-			if !exists {
+			var value string
+			var exists bool
+
+			if rest[0] != '$' {
+				value, exists = data.GetString(rest)
+			} else {
 				splited := strings.Split(rest, ".")
 
-				var vvalue VarValue
-				vvalue, exists = ctx.vars[splited[0]]
-				if exists {
+				var varValue VarValue
+				varValue, exists = ctx.vars[splited[0]]
+				if exists && len(splited) <= 2 {
 					if len(splited) == 1 {
-						value = fmt.Sprintf("%v", vvalue)
+						value = fmt.Sprintf("%v", varValue)
 					} else if len(splited) == 2 {
-						reflectValue := reflect.ValueOf(vvalue)
+						reflectValue := reflect.ValueOf(varValue)
 						if reflectValue.Kind() == reflect.Struct {
-							fieldValue := reflectValue.FieldByName(splited[1])
-							if fieldValue.IsValid() {
+							if fieldValue := reflectValue.FieldByName(splited[1]); fieldValue.IsValid() {
 								value = fmt.Sprintf("%v", fieldValue)
+							} else {
+								exists = false
 							}
 						} else {
 							exists = false
