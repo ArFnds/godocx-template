@@ -2,7 +2,9 @@ package internal
 
 import (
 	"errors"
+	"log/slog"
 	"slices"
+	"strings"
 )
 
 // CloneNodeWithoutChildren crée une copie d'un noeud sans ses enfants
@@ -98,4 +100,33 @@ func getCurLoop(ctx *Context) *LoopStatus {
 func isLoopExploring(ctx *Context) bool {
 	curLoop := getCurLoop(ctx)
 	return curLoop != nil && curLoop.idx < 0
+}
+
+func logLoop(loops []LoopStatus) {
+	if len(loops) == 0 {
+		return
+	}
+	var level int = len(loops) - 1
+	loopLevel := loops[level]
+
+	idxStr := ""
+	if loopLevel.idx >= 0 {
+		idxStr = string(loopLevel.idx + 1)
+	} else {
+		idxStr = "EXPLORATION"
+	}
+	builder := strings.Builder{}
+	if loopLevel.isIf {
+		builder.WriteString("IF")
+	} else {
+		builder.WriteString("FOR")
+	}
+	builder.WriteString(" loop on ")
+	builder.WriteString(string(level))
+	builder.WriteString(":")
+	builder.WriteString(loopLevel.varName)
+	builder.WriteString(idxStr)
+	builder.WriteString("/")
+	builder.WriteString(string(len(loopLevel.loopOver)))
+	slog.Debug(builder.String())
 }

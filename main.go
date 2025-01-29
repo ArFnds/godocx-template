@@ -43,6 +43,9 @@ func main() {
 
 	result, err := ProduceReport(ReportData{
 		"folderName": "test folder",
+		"finitions": []struct{ title string }{
+			{title: "Finition 1"}, {title: "Finition 2"},
+		},
 	}, preppedTemplate, NewContext(CreateReportOptions{
 		CmdDelimiter: [2]string{DEFAULT_CMD_DELIMITER, DEFAULT_CMD_DELIMITER},
 

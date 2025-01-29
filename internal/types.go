@@ -1,5 +1,7 @@
 package internal
 
+import "reflect"
+
 const (
 	T_TAG        = "w:t"
 	R_TAG        = "w:r"
@@ -20,11 +22,14 @@ type Node interface {
 	SetChildren([]Node)
 	PopChild()
 	AddChild(Node)
+	Name() string
+	SetName(string)
 }
 
 type BaseNode struct {
 	ParentNode Node
 	ChildNodes []Node
+	NodeName   string
 }
 
 func (n *BaseNode) Parent() Node {
@@ -51,6 +56,14 @@ func (n *BaseNode) PopChild() {
 
 func (n *BaseNode) AddChild(node Node) {
 	n.ChildNodes = append(n.ChildNodes, node)
+}
+
+func (n *BaseNode) Name() string {
+	return n.NodeName
+}
+
+func (n *BaseNode) SetName(name string) {
+	n.NodeName = name
 }
 
 type TextNode struct {
@@ -162,3 +175,11 @@ type LoopStatus struct {
 type Link struct{ url string }
 type Links map[string]Link
 type Htmls map[string]string
+
+func isSlice(v any) bool {
+	// Utiliser reflect.TypeOf pour obtenir le type de v
+	valueType := reflect.TypeOf(v)
+
+	// Vérifier si le type est un slice
+	return valueType != nil && valueType.Kind() == reflect.Slice
+}

@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"reflect"
 	"regexp"
 	"slices"
 	"strings"
@@ -25,6 +26,20 @@ func (rd ReportData) GetString(key string) (string, bool) {
 		return valueStr, ok
 	}
 	return "", false
+}
+
+func (rd ReportData) GetArray(key string) ([]any, bool) {
+	value, ok := rd[key]
+	if ok && isSlice(value) {
+		value := reflect.ValueOf(value)
+		ret := make([]any, value.Len())
+		for i := 0; i < value.Len(); i++ {
+			element := value.Index(i)
+			ret[i] = element.Interface()
+		}
+		return ret, true
+	}
+	return nil, false
 }
 
 type CommandProcessor func(data ReportData, node Node, ctx *Context) (string, error)
@@ -99,6 +114,172 @@ func splitCommand(cmd string) (cmdName string, rest string) {
 	return
 }
 
+func processForIf(data ReportData, node Node, ctx *Context, cmd string, cmdName string, cmdRest string) error {
+	isIf := cmdName == "IF"
+
+	var forMatch []string
+	var varName string
+
+	if isIf {
+		if node.Name() == "" {
+			node.SetName("__if_" + fmt.Sprint(ctx.gCntIf))
+			ctx.gCntIf++
+		}
+		varName = node.Name()
+	} else {
+		re := regexp.MustCompile(`(?i)^(\S+)\s+IN\s+(.+)$`)
+		forMatch = re.FindStringSubmatch(cmdRest)
+		if forMatch == nil {
+			return errors.New("Invalid FOR command")
+		}
+		varName = forMatch[1]
+	}
+
+	// Have we already seen this node or is it the start of a new FOR loop?
+	curLoop := getCurLoop(ctx)
+	if !(curLoop != nil && curLoop.varName == varName) {
+		if isIf {
+
+		}
+
+		parentLoopLevel := len(ctx.loops) - 1
+		fParentIsExploring := parentLoopLevel >= 0 && ctx.loops[parentLoopLevel].idx == -1
+		var loopOver []VarValue
+
+		if fParentIsExploring {
+			loopOver = []VarValue{}
+		} else if isIf {
+			// TODO handle if
+			//shouldRun, err := runUserJsAndGetRaw(data, cmdRest, ctx)
+			//if err != nil {
+			//	return err
+			//}
+			//if shouldRun {
+			//	loopOver = []interface{}{1}
+			//} else {
+			//	loopOver = []interface{}{}
+			//}
+		} else {
+			if forMatch == nil {
+				return errors.New("Invalid FOR command")
+			}
+			items, ok := data.GetArray(forMatch[2])
+			if !ok {
+				return errors.New("Invalid FOR command (can only iterate over Array) " + cmd)
+			}
+			for _, item := range items {
+				loopOver = append(loopOver, item)
+			}
+		}
+		ctx.loops = append(ctx.loops, LoopStatus{
+			refNode:      node,
+			refNodeLevel: ctx.level,
+			varName:      varName,
+			loopOver:     loopOver,
+			isIf:         isIf,
+			idx:          -1,
+		})
+	}
+	logLoop(ctx.loops)
+
+	return nil
+}
+
+func processEndForIf(node Node, ctx *Context, cmd string, cmdName string, cmdRest string) error {
+	isIf := cmdName == "END-IF"
+	curLoop := getCurLoop(ctx)
+
+	if curLoop == nil {
+		contextType := "IF statement"
+		if !isIf {
+			contextType = "FOR loop"
+		}
+		errorMessage := fmt.Sprintf("Unexpected %s outside of %s context", cmdName, contextType)
+		return NewInvalidCommandError(errorMessage, cmd)
+	}
+
+	// Reset the if check flag for the corresponding p or tr parent node
+	parentPorTrNode := findParentPorTrNode(node)
+	var parentPorTrNodeTag string
+	if parentNodeNTxt, isParentNodeNTxt := parentPorTrNode.(*NonTextNode); isParentNodeNTxt {
+		parentPorTrNodeTag = parentNodeNTxt.Tag
+	}
+	if parentPorTrNodeTag == P_TAG {
+		delete(ctx.pIfCheckMap, node)
+	} else if parentPorTrNodeTag == TR_TAG {
+		delete(ctx.trIfCheckMap, node)
+	}
+
+	// First time we visit an END-IF node, we assign it the arbitrary name
+	// generated when the IF was processed
+	if isIf && node.Name() == "" {
+		node.SetName(curLoop.varName)
+		ctx.gCntEndIf += 1
+	}
+
+	// Check if this is the expected END-IF/END-FOR. If not:
+	// - If it's one of the nested varNames, throw
+	// - If it's not one of the nested varNames, ignore it; we find
+	//   cases in which an END-IF/FOR is found that belongs to a previous
+	//   part of the paragraph of the current loop.
+	varName := cmdRest
+	if isIf {
+		varName = node.Name()
+	}
+	if curLoop.varName != varName {
+		if !slices.ContainsFunc(ctx.loops, func(loop LoopStatus) bool { return loop.varName == varName }) {
+			slog.Debug("Ignoring "+cmd+"("+varName+", but we're expecting "+curLoop.varName+")", "varName", varName)
+			return nil
+		}
+		return NewInvalidCommandError("Invalid command", cmd)
+	}
+
+	// Get the next item in the loop
+	nextIdx := curLoop.idx + 1
+	var nextItem VarValue
+	if nextIdx < len(curLoop.loopOver) {
+		nextItem = curLoop.loopOver[nextIdx]
+	}
+
+	if nextItem != nil {
+		// next iteration
+		ctx.vars["$"+varName] = nextItem
+		ctx.fJump = true
+		curLoop.idx = nextIdx
+	} else {
+		// loop finished
+		// ctx.loops.pop()
+		ctx.loops = ctx.loops[:len(ctx.loops)-1]
+	}
+
+	return nil
+}
+
+func findParentPorTrNode(node Node) (resultNode Node) {
+	parentNode := node.Parent()
+
+	for parentNode != nil && resultNode == nil {
+		parentNTxtNode, isParentNTxtNode := parentNode.(*NonTextNode)
+		var parentNodeTag string
+		if isParentNTxtNode {
+			parentNodeTag = parentNTxtNode.Tag
+		}
+		if parentNodeTag == P_TAG {
+			var grandParentNode Node = nil
+			if parentNode.Parent() != nil {
+				grandParentNode = parentNode.Parent()
+			}
+			if grandParentNTxtNode, isGrandParentNTxtNode := grandParentNode.(*NonTextNode); grandParentNode != nil && isGrandParentNTxtNode && grandParentNTxtNode.Tag == TR_TAG {
+				resultNode = grandParentNode
+			} else {
+				resultNode = parentNode
+			}
+		}
+		parentNode = parentNode.Parent()
+	}
+	return
+}
+
 func processCmd(data ReportData, node Node, ctx *Context) (string, error) {
 	cmd := getCommand(ctx.cmd, ctx.shorthands, ctx.options.FixSmartQuotes)
 	ctx.cmd = "" // flush the context
@@ -121,11 +302,44 @@ func processCmd(data ReportData, node Node, ctx *Context) (string, error) {
 		// ...
 		// ALIAS name ANYTHING ELSE THAT MIGHT BE PART OF THE COMMAND...
 	} else if cmdName == "ALIAS" {
+
+		// FOR <varName> IN <expression>
+		// IF <expression>
 	} else if cmdName == "FOR" || cmdName == "IF" {
+		processForIf(data, node, ctx, cmd, cmdName, rest)
+
+		// END-FOR
+		// END-IF
 	} else if cmdName == "END-FOR" || cmdName == "END-IF" {
+		processEndForIf(node, ctx, cmd, cmdName, rest)
+
+		// INS <expression>
 	} else if cmdName == "INS" {
 		if !isLoopExploring(ctx) {
 			value, exists := data.GetString(rest)
+
+			if !exists {
+				splited := strings.Split(rest, ".")
+
+				var vvalue VarValue
+				vvalue, exists = ctx.vars[splited[0]]
+				if exists {
+					if len(splited) == 1 {
+						value = fmt.Sprintf("%v", vvalue)
+					} else if len(splited) == 2 {
+						reflectValue := reflect.ValueOf(vvalue)
+						if reflectValue.Kind() == reflect.Struct {
+							fieldValue := reflectValue.FieldByName(splited[1])
+							if fieldValue.IsValid() {
+								value = fmt.Sprintf("%v", fieldValue)
+							}
+						} else {
+							exists = false
+						}
+					}
+				}
+			}
+
 			if !exists && ctx.options.ErrorHandler != nil {
 				value = ctx.options.ErrorHandler(errors.New("KeyNotFound: "+rest), rest)
 			}
@@ -482,6 +696,9 @@ func processText(data *ReportData, node *TextNode, ctx *Context, onCommand Comma
 		if idx < len(segments)-1 {
 
 			if ctx.fCmd {
+				if strings.Contains(segment, "finition") {
+					slog.Debug("Here")
+				}
 				cmdResultText, err := onCommand(*data, node, ctx)
 				if err != nil {
 					if failFast {
