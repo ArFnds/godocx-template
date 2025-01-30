@@ -433,7 +433,7 @@ func parseFunctionCall(rest string) ([]string, bool) {
 	return nil, false
 }
 
-func getVar(ctx *Context, rest string) (varValue VarValue, exists bool) {
+func getFromVars(ctx *Context, rest string) (varValue VarValue, exists bool) {
 
 	if rest[0] != '$' {
 		return nil, false
@@ -511,7 +511,7 @@ func processCmd(data *ReportData, node Node, ctx *Context) (string, error) {
 					if function, ok := ctx.options.Functions[funcName]; ok {
 						argValues := make([]any, len(args))
 						for i, arg := range args {
-							if varValue, ok := getVar(ctx, arg); ok {
+							if varValue, ok := getFromVars(ctx, arg); ok {
 								argValues[i] = varValue
 							} else if varValue, ok := data.GetValue(arg); ok {
 								argValues[i] = varValue
@@ -528,7 +528,7 @@ func processCmd(data *ReportData, node Node, ctx *Context) (string, error) {
 				}
 			} else if varValue, ok := data.GetValue(rest); ok && rest[0] != '$' {
 				value = fmt.Sprintf("%v", varValue)
-			} else if varValue, ok := getVar(ctx, rest); ok {
+			} else if varValue, ok := getFromVars(ctx, rest); ok {
 				value = fmt.Sprintf("%v", varValue)
 			} else if ctx.options.ErrorHandler != nil {
 				value = ctx.options.ErrorHandler(&KeyNotFoundError{Key: rest}, rest)
