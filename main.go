@@ -8,6 +8,9 @@ import (
 	"time"
 
 	. "github.com/ArFnds/godocx-template/pkg/report"
+	"github.com/gomarkdown/markdown"
+	"github.com/gomarkdown/markdown/html"
+	"github.com/gomarkdown/markdown/parser"
 )
 
 func main() {
@@ -62,7 +65,7 @@ Sanitaires
 			{
 				"acquerreurValue": 10,
 				"annualRevenus":   50,
-				"redementTaux":    52,
+				"rendementTaux":   52,
 				"venalValue":      58,
 			},
 		},
@@ -85,8 +88,9 @@ Sanitaires
 		},
 
 		// conclusions
-		"longConclusion":  "Dans la mesure où les méthodes retenues ont un écart significatif de 17,8% mais que l’indexation des loyers augmentent rapidement (5 à 6%/an) la méthode par capitalisation du revenu ajustée lors prochaines indexation (1er T2025) fera progresser la valeur aux alentours des 5.300.000,00€, nous pouvons déterminer avec certitude que la valeur de l’immeuble objet de la mission est comprise entre 5.300.000,00€ et 5.800.000,00€.",
-		"shortConclusion": "Il sera retenu une valeur au jour de la mission de 5.600.000,00€ (Cinq millions six cent milles €uros)",
+		"longConclusion":   "Dans la mesure où les méthodes retenues ont un écart significatif de 17,8% mais que l’indexation des loyers augmentent rapidement (5 à 6%/an) la méthode par capitalisation du revenu ajustée lors prochaines indexation (1er T2025) fera progresser la valeur aux alentours des 5.300.000,00€, nous pouvons déterminer avec certitude que la valeur de l’immeuble objet de la mission est comprise entre 5.300.000,00€ et 5.800.000,00€.",
+		"shortConclusion":  "Il sera retenu une valeur au jour de la mission de 5.600.000,00€ (Cinq millions six cent milles €uros)",
+		"generalSituation": "**my general situation**",
 	}
 
 	options := CreateReportOptions{
@@ -94,6 +98,25 @@ Sanitaires
 		// Otherwise unused but mandatory options
 		ProcessLineBreaks: true,
 		Functions: Functions{
+			"markdownToHtml": func(args ...any) string {
+				if text, ok := args[0].(string); ok {
+					extensions := parser.CommonExtensions | parser.AutoHeadingIDs | parser.NoEmptyLineBeforeBlock
+					p := parser.NewWithExtensions(extensions)
+					doc := p.Parse([]byte(text))
+					htmlFlags := html.CommonFlags | html.HrefTargetBlank
+					opts := html.RendererOptions{Flags: htmlFlags}
+					renderer := html.NewRenderer(opts)
+					html := markdown.Render(doc, renderer)
+					return string(html)
+				}
+				return ""
+			},
+			"formatNumberToPourcent": func(args ...any) string {
+				if value, ok := args[0].(int); ok {
+					return fmt.Sprintf("%d %%", value)
+				}
+				return ""
+			},
 			"formatToSquareMeters": func(args ...any) string {
 				if surface, ok := args[0].(int); ok {
 					return fmt.Sprintf("%d m2", surface)

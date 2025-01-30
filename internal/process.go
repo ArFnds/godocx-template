@@ -46,7 +46,7 @@ func (rd ReportData) GetImage(key string) (*ImagePars, bool) {
 	return nil, false
 }
 
-type CommandProcessor func(data ReportData, node Node, ctx *Context) (string, error)
+type CommandProcessor func(data *ReportData, node Node, ctx *Context) (string, error)
 
 var (
 	IncompleteConditionalStatementError = errors.New("IncompleteConditionalStatementError")
@@ -119,7 +119,7 @@ func splitCommand(cmd string) (cmdName string, rest string) {
 	return
 }
 
-func processForIf(data ReportData, node Node, ctx *Context, cmd string, cmdName string, cmdRest string) error {
+func processForIf(data *ReportData, node Node, ctx *Context, cmd string, cmdName string, cmdRest string) error {
 	isIf := cmdName == "IF"
 
 	var forMatch []string
@@ -459,7 +459,7 @@ func getVar(ctx *Context, rest string) (varValue VarValue, exists bool) {
 	return
 }
 
-func processCmd(data ReportData, node Node, ctx *Context) (string, error) {
+func processCmd(data *ReportData, node Node, ctx *Context) (string, error) {
 	cmd := getCommand(ctx.cmd, ctx.shorthands, ctx.options.FixSmartQuotes)
 	ctx.cmd = "" // flush the context
 
@@ -898,7 +898,7 @@ func processText(data *ReportData, node *TextNode, ctx *Context, onCommand Comma
 		// and toggle "command mode"
 		if idx < len(segments)-1 {
 			if ctx.fCmd {
-				cmdResultText, err := onCommand(*data, node, ctx)
+				cmdResultText, err := onCommand(data, node, ctx)
 				if err != nil && err != IgnoreError {
 					if failFast {
 						return "", err
