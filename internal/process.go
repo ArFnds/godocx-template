@@ -466,6 +466,27 @@ func getValue(key string, ctx *Context, data *ReportData) (VarValue, bool) {
 	return data.GetValue(key)
 }
 
+func runFunction(funcName string, args []string, ctx *Context, data *ReportData) (string, error) {
+	if ctx.options.Functions != nil {
+		if function, ok := ctx.options.Functions[funcName]; ok {
+			argValues := make([]any, len(args))
+			for i, arg := range args {
+				if varValue, ok := getValue(arg, ctx, data); ok {
+					argValues[i] = varValue
+				} else {
+					return "", &KeyNotFoundError{Key: arg}
+				}
+			}
+			value := function(argValues...)
+			return value, nil
+		} else {
+			return "", &FunctionNotFoundError{FunctionName: funcName}
+		}
+	} else {
+		return "", &FunctionNotFoundError{FunctionName: funcName}
+	}
+}
+
 func processCmd(data *ReportData, node Node, ctx *Context) (string, error) {
 	cmd := getCommand(ctx.cmd, ctx.shorthands, ctx.options.FixSmartQuotes)
 	ctx.cmd = "" // flush the context
@@ -514,22 +535,10 @@ func processCmd(data *ReportData, node Node, ctx *Context) (string, error) {
 				funcName := args[0]
 				args = args[1:]
 
-				if ctx.options.Functions != nil {
-					if function, ok := ctx.options.Functions[funcName]; ok {
-						argValues := make([]any, len(args))
-						for i, arg := range args {
-							if varValue, ok := getValue(arg, ctx, data); ok {
-								argValues[i] = varValue
-							} else if ctx.options.ErrorHandler != nil {
-								value = ctx.options.ErrorHandler(errors.New("KeyNotFound: "+rest), rest)
-							}
-						}
-						value = function(argValues...)
-					} else {
-						return "", &FunctionNotFoundError{FunctionName: funcName}
-					}
-				} else {
-					return "", &FunctionNotFoundError{FunctionName: funcName}
+				var err error
+				value, err = runFunction(funcName, args, ctx, data)
+				if err != nil {
+					return "", err
 				}
 			} else if varValue, ok := getValue(rest, ctx, data); ok {
 				value = fmt.Sprintf("%v", varValue)
