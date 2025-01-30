@@ -473,6 +473,8 @@ func runFunction(funcName string, args []string, ctx *Context, data *ReportData)
 			for i, arg := range args {
 				if varValue, ok := getValue(arg, ctx, data); ok {
 					argValues[i] = varValue
+				} else if ctx.options.ErrorHandler != nil {
+					return ctx.options.ErrorHandler(&KeyNotFoundError{Key: arg}, arg), nil
 				} else {
 					return "", &KeyNotFoundError{Key: arg}
 				}
