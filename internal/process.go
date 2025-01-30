@@ -493,12 +493,14 @@ func processCmd(data ReportData, node Node, ctx *Context) (string, error) {
 		// END-FOR
 		// END-IF
 	} else if cmdName == "END-FOR" || cmdName == "END-IF" {
-		processEndForIf(node, ctx, cmd, cmdName, rest)
+		err := processEndForIf(node, ctx, cmd, cmdName, rest)
+		if err != nil {
+			return "", err
+		}
 
 		// INS <expression>
 	} else if cmdName == "INS" {
 		if !isLoopExploring(ctx) {
-
 			var value string
 
 			if args, isFunction := parseFunctionCall(rest); isFunction {
@@ -650,6 +652,8 @@ func walkTemplate(data *ReportData, template Node, ctx *Context, processor Comma
 				tag = nonTextNodeOut.Tag
 			}
 			fRemoveNode := false
+
+			// Delete last generated output node if we're skipping nodes due to an empty FOR loop
 			if (tag == P_TAG ||
 				tag == TBL_TAG ||
 				tag == TR_TAG ||
@@ -659,7 +663,7 @@ func walkTemplate(data *ReportData, template Node, ctx *Context, processor Comma
 				// (or table row) with just a command
 			} else if tag == P_TAG || tag == TR_TAG || tag == TC_TAG {
 				buffers := ctx.buffers[tag]
-				fRemoveNode = buffers.text == "" && buffers.cmds != "" //&& !buffers.fInsertedText
+				fRemoveNode = buffers.text == "" && buffers.cmds != "" && !buffers.fInsertedText
 			}
 
 			// Execute removal, if needed. The node will no longer be part of the output, but
@@ -714,7 +718,7 @@ func walkTemplate(data *ReportData, template Node, ctx *Context, processor Comma
 
 			// If a link was generated, replace the parent `w:r` node with
 			// the link node
-			if ctx.pendingLinkNode != nil && isNotTextNode && nonTextNodeOut.Tag == "r" {
+			if ctx.pendingLinkNode != nil && isNotTextNode && nonTextNodeOut.Tag == R_TAG {
 				linkNode := ctx.pendingLinkNode
 				parent := nodeOut.Parent()
 				if parent != nil {
@@ -893,7 +897,6 @@ func processText(data *ReportData, node *TextNode, ctx *Context, onCommand Comma
 		// If there are more segments, execute the command (if we are in "command mode"),
 		// and toggle "command mode"
 		if idx < len(segments)-1 {
-
 			if ctx.fCmd {
 				cmdResultText, err := onCommand(*data, node, ctx)
 				if err != nil && err != IgnoreError {
