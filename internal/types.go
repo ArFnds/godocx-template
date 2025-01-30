@@ -1,6 +1,8 @@
 package internal
 
-import "reflect"
+import (
+	"reflect"
+)
 
 const (
 	T_TAG        = "w:t"
@@ -145,6 +147,9 @@ type Delimiters struct {
 	Close string
 }
 
+type Function func(args ...any) string
+type Functions map[string]Function
+
 type CreateReportOptions struct {
 	CmdDelimiter        *Delimiters
 	LiteralXmlDelimiter string
@@ -158,6 +163,7 @@ type CreateReportOptions struct {
 	FixSmartQuotes             bool
 	ProcessLineBreaksAsNewText bool
 	MaximumWalkingDepth        int
+	Functions                  Functions
 }
 
 type VarValue any

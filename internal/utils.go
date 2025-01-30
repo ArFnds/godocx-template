@@ -2,6 +2,7 @@ package internal
 
 import (
 	"errors"
+	"fmt"
 	"log/slog"
 	"slices"
 	"strings"
@@ -117,7 +118,7 @@ func logLoop(loops []LoopStatus) {
 
 	idxStr := ""
 	if loopLevel.idx >= 0 {
-		idxStr = string(loopLevel.idx + 1)
+		idxStr = fmt.Sprint(loopLevel.idx + 1)
 	} else {
 		idxStr = "EXPLORATION"
 	}
@@ -128,11 +129,11 @@ func logLoop(loops []LoopStatus) {
 		builder.WriteString("FOR")
 	}
 	builder.WriteString(" loop on ")
-	builder.WriteString(string(level))
+	builder.WriteString(fmt.Sprint(level))
 	builder.WriteString(":")
 	builder.WriteString(loopLevel.varName)
 	builder.WriteString(idxStr)
 	builder.WriteString("/")
-	builder.WriteString(string(len(loopLevel.loopOver)))
+	builder.WriteString(fmt.Sprint(len(loopLevel.loopOver)))
 	slog.Debug(builder.String())
 }

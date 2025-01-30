@@ -73,7 +73,7 @@ func ProduceReport(data *ReportData, template Node, ctx Context) (*ReportOutput,
 
 func notBuiltIns(cmd string) bool {
 	upperCmd := strings.ToUpper(cmd)
-	return !slices.ContainsFunc(BUILT_IN_COMMANDS, func(b string) bool { return strings.HasPrefix(upperCmd, b) })
+	return !slices.ContainsFunc(BUILT_IN_COMMANDS, func(b string) bool { return strings.HasPrefix(upperCmd, b+" ") })
 }
 
 func getCommand(command string, shorthands map[string]string, fixSmartQuotes bool) string {
@@ -423,6 +423,42 @@ func findParentPorTrNode(node Node) (resultNode Node) {
 	return
 }
 
+var functionCallRegexp = regexp.MustCompile(`(\w+)\(([^)]*)\)`)
+
+func parseFunctionCall(rest string) ([]string, bool) {
+	matches := functionCallRegexp.FindStringSubmatch(rest)
+	if len(matches) > 0 {
+		return append([]string{matches[1]}, strings.Split(matches[2], ",")...), true
+	}
+	return nil, false
+}
+
+func getVar(ctx *Context, rest string) (varValue VarValue, exists bool) {
+
+	if rest[0] != '$' {
+		return nil, false
+	}
+
+	splited := strings.Split(rest, ".")
+
+	varValue, exists = ctx.vars[splited[0]]
+	if exists && len(splited) == 2 {
+		reflectValue := reflect.ValueOf(varValue)
+		if reflectValue.Kind() == reflect.Map {
+			reflectKey := reflect.ValueOf(splited[1])
+			if fieldValue := reflectValue.MapIndex(reflectKey); fieldValue.IsValid() {
+				varValue = fieldValue.Interface()
+			} else {
+				exists = false
+			}
+		} else {
+			exists = false
+
+		}
+	}
+	return
+}
+
 func processCmd(data ReportData, node Node, ctx *Context) (string, error) {
 	cmd := getCommand(ctx.cmd, ctx.shorthands, ctx.options.FixSmartQuotes)
 	ctx.cmd = "" // flush the context
@@ -449,7 +485,10 @@ func processCmd(data ReportData, node Node, ctx *Context) (string, error) {
 		// FOR <varName> IN <expression>
 		// IF <expression>
 	} else if cmdName == "FOR" || cmdName == "IF" {
-		processForIf(data, node, ctx, cmd, cmdName, rest)
+		err := processForIf(data, node, ctx, cmd, cmdName, rest)
+		if err != nil {
+			return "", err
+		}
 
 		// END-FOR
 		// END-IF
@@ -460,36 +499,37 @@ func processCmd(data ReportData, node Node, ctx *Context) (string, error) {
 	} else if cmdName == "INS" {
 		if !isLoopExploring(ctx) {
 
-			var varValue VarValue
-			var exists bool
-
-			if rest[0] != '$' {
-				varValue, exists = data.GetValue(rest)
-			} else {
-				splited := strings.Split(rest, ".")
-
-				varValue, exists = ctx.vars[splited[0]]
-				if exists && len(splited) == 2 {
-					reflectValue := reflect.ValueOf(varValue)
-					if reflectValue.Kind() == reflect.Map {
-						reflectKey := reflect.ValueOf(splited[1])
-						if fieldValue := reflectValue.MapIndex(reflectKey); fieldValue.IsValid() {
-							varValue = fieldValue
-						} else {
-							exists = false
-						}
-					} else {
-						exists = false
-
-					}
-				}
-			}
-
 			var value string
-			if exists {
+
+			if args, isFunction := parseFunctionCall(rest); isFunction {
+				funcName := args[0]
+				args = args[1:]
+
+				if ctx.options.Functions != nil {
+					if function, ok := ctx.options.Functions[funcName]; ok {
+						argValues := make([]any, len(args))
+						for i, arg := range args {
+							if varValue, ok := getVar(ctx, arg); ok {
+								argValues[i] = varValue
+							} else if varValue, ok := data.GetValue(arg); ok {
+								argValues[i] = varValue
+							} else if ctx.options.ErrorHandler != nil {
+								value = ctx.options.ErrorHandler(errors.New("KeyNotFound: "+rest), rest)
+							}
+						}
+						value = function(argValues...)
+					} else {
+						return "", &FunctionNotFoundError{FunctionName: funcName}
+					}
+				} else {
+					return "", &FunctionNotFoundError{FunctionName: funcName}
+				}
+			} else if varValue, ok := data.GetValue(rest); ok && rest[0] != '$' {
+				value = fmt.Sprintf("%v", varValue)
+			} else if varValue, ok := getVar(ctx, rest); ok {
 				value = fmt.Sprintf("%v", varValue)
 			} else if ctx.options.ErrorHandler != nil {
-				value = ctx.options.ErrorHandler(errors.New("KeyNotFound: "+rest), rest)
+				value = ctx.options.ErrorHandler(&KeyNotFoundError{Key: rest}, rest)
 			}
 
 			if ctx.options.ProcessLineBreaks {
@@ -539,7 +579,8 @@ func debugPrintNode(node Node) string {
 		return "<unknown>"
 	}
 }
-func walkTemplate(data *ReportData, template Node, ctx *Context, processor CommandProcessor) (report *ReportOutput, retErr error) {
+func walkTemplate(data *ReportData, template Node, ctx *Context, processor CommandProcessor) (*ReportOutput, error) {
+	var retErr error
 	out := CloneNodeWithoutChildren(template.(*NonTextNode))
 
 	nodeIn := template
@@ -595,7 +636,7 @@ func walkTemplate(data *ReportData, template Node, ctx *Context, processor Comma
 			move = "UP"
 		}
 
-		slog.Debug(`Next node`, "move", move, "level", ctx.level, "nodeIn", debugPrintNode(nodeIn))
+		//slog.Debug(`Next node`, "move", move, "level", ctx.level, "nodeIn", debugPrintNode(nodeIn))
 
 		// =============================================
 		// Process input node
@@ -618,7 +659,7 @@ func walkTemplate(data *ReportData, template Node, ctx *Context, processor Comma
 				// (or table row) with just a command
 			} else if tag == P_TAG || tag == TR_TAG || tag == TC_TAG {
 				buffers := ctx.buffers[tag]
-				fRemoveNode = buffers.text == "" && buffers.cmds != "" && !buffers.fInsertedText
+				fRemoveNode = buffers.text == "" && buffers.cmds != "" //&& !buffers.fInsertedText
 			}
 
 			// Execute removal, if needed. The node will no longer be part of the output, but
@@ -655,11 +696,11 @@ func walkTemplate(data *ReportData, template Node, ctx *Context, processor Comma
 					imgNode.SetParent(parent)
 					// pop last children
 					parent.PopChild()
-					parent.SetChildren(append(parent.Children(), imgNode))
+					parent.AddChild(imgNode)
 					if len(captionNodes) > 0 {
 						for _, captionNode := range captionNodes {
 							captionNode.SetParent(parent)
-							parent.SetChildren(append(parent.Children(), captionNode))
+							parent.AddChild(captionNode)
 						}
 					}
 
@@ -680,7 +721,7 @@ func walkTemplate(data *ReportData, template Node, ctx *Context, processor Comma
 					linkNode.SetParent(parent)
 					// pop last children
 					parent.PopChild()
-					parent.SetChildren(append(parent.Children(), linkNode))
+					parent.AddChild(linkNode)
 					// Prevent containing paragraph or table row from being removed
 					ctx.buffers[P_TAG].fInsertedText = true
 					ctx.buffers[TR_TAG].fInsertedText = true
@@ -818,7 +859,7 @@ func walkTemplate(data *ReportData, template Node, ctx *Context, processor Comma
 		Images: ctx.images,
 		Links:  ctx.links,
 		Htmls:  ctx.htmls,
-	}, nil // TODO return retErr ici
+	}, retErr
 
 }
 
@@ -854,9 +895,6 @@ func processText(data *ReportData, node *TextNode, ctx *Context, onCommand Comma
 		if idx < len(segments)-1 {
 
 			if ctx.fCmd {
-				if strings.Contains(segment, "finition") {
-					slog.Debug("Here")
-				}
 				cmdResultText, err := onCommand(*data, node, ctx)
 				if err != nil && err != IgnoreError {
 					if failFast {

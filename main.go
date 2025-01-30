@@ -1,8 +1,10 @@
 package main
 
 import (
+	"fmt"
 	"log/slog"
 	"os"
+	"reflect"
 	"time"
 
 	. "github.com/ArFnds/godocx-template/pkg/report"
@@ -45,6 +47,7 @@ Un bâtiment élevé sur un rez-de-chaussée et de trois étages avec roof Top.
 			{"niveau": "Rez-de-chaussée", "total": 624, "usages": "Activité Bureau te"},
 			{"niveau": "Etage 1", "total": 468, "usages": "Bureau"},
 		},
+		"totalSurface": 624 + 468,
 		"finitions": []map[string]any{
 			{"title": "Réseau informatique"},
 			{"title": "Cloisons modulables"},
@@ -55,7 +58,7 @@ Carport voitures et vélo
 Ascenseurs
 Sanitaires 
 `,
-		"valorisations": []map[string]any{
+		"rendementValorisations": []map[string]any{
 			{
 				"acquerreurValue": 10,
 				"annualRevenus":   50,
@@ -63,15 +66,17 @@ Sanitaires
 				"venalValue":      58,
 			},
 		},
-		"valorisationImmeuble": []map[string]any{
+		"immeubleValorisations": []map[string]any{
 			{"name": "Utile", "area": 2254, "value": 5702620},
 			{"name": "Terrasse", "area": 534, "value": 405306},
 		},
 
+		"surroundingPrices": []map[string]any{},
+
 		// images
-		"imageMatrix":      []string{},
-		"imageViewArrea23": []string{},
-		"imageViewArrea1":  nil,
+		"imgMatrix":           []string{},
+		"imgPrincipalAxilary": []string{},
+		"imageViewArrea1":     nil,
 		"imgPlanCadastral": &ImagePars{
 			Width:     16.88,
 			Height:    23.74,
@@ -85,13 +90,47 @@ Sanitaires
 	}
 
 	options := CreateReportOptions{
+		LiteralXmlDelimiter: "||",
 		// Otherwise unused but mandatory options
-		ProcessLineBreaks:          true,
-		FailFast:                   false,
-		RejectNullish:              false,
-		ErrorHandler:               nil,
-		FixSmartQuotes:             false,
-		ProcessLineBreaksAsNewText: false,
+		ProcessLineBreaks: true,
+		Functions: Functions{
+			"formatToSquareMeters": func(args ...any) string {
+				if surface, ok := args[0].(int); ok {
+					return fmt.Sprintf("%d m2", surface)
+				}
+				return ""
+			},
+			"formatNumberToCurrency": func(args ...any) string {
+				if value, ok := args[0].(float64); ok {
+					return fmt.Sprintf("%.2f €", value)
+				}
+				if value, ok := args[0].(int); ok {
+					return fmt.Sprintf("%d €", value)
+				}
+				return ""
+			},
+			"getLabelPriceOfOneArea": func(args ...any) string {
+				var area int
+				var totalPrice int
+				var ok bool
+				if area, ok = args[0].(int); !ok {
+					slog.Debug("Failed to get area", "args", args, "type", reflect.TypeOf(args[0]))
+					return ""
+				}
+				if totalPrice, ok = args[1].(int); !ok {
+					slog.Debug("Failed to get totalPrice", "args", args, "type", reflect.TypeOf(args[1]))
+					return ""
+				}
+
+				if area < 0 {
+					return "impossible d'avoir le prix unitaire pour 0m2 ou negative"
+				}
+
+				unitPrice := totalPrice / area
+
+				return fmt.Sprintf("%d €", unitPrice)
+			},
+		},
 	}
 
 	outBuf, err := CreateReport("defaultTemplate.docx", &data, options)
