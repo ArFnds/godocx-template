@@ -73,6 +73,7 @@ Sanitaires
 			{"name": "Utile", "area": 2254, "value": 5702620},
 			{"name": "Terrasse", "area": 534, "value": 405306},
 		},
+		"totalValorisationAmount": 5702620 + 405306,
 
 		"surroundingPrices": []map[string]any{},
 

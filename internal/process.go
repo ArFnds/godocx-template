@@ -489,6 +489,28 @@ func runFunction(funcName string, args []string, ctx *Context, data *ReportData)
 	}
 }
 
+func runAndGetValue(text string, ctx *Context, data *ReportData) (string, error) {
+	var value string
+
+	if args, isFunction := parseFunctionCall(text); isFunction {
+		funcName := args[0]
+		args = args[1:]
+
+		var err error
+		value, err = runFunction(funcName, args, ctx, data)
+		if err != nil {
+			return "", err
+		}
+	} else if varValue, ok := getValue(text, ctx, data); ok {
+		value = fmt.Sprintf("%v", varValue)
+	} else if ctx.options.ErrorHandler != nil {
+		value = ctx.options.ErrorHandler(&KeyNotFoundError{Key: text}, text)
+	} else {
+		return "", errors.New("Fail to compute value for " + text)
+	}
+	return value, nil
+}
+
 func processCmd(data *ReportData, node Node, ctx *Context) (string, error) {
 	cmd := getCommand(ctx.cmd, ctx.shorthands, ctx.options.FixSmartQuotes)
 	ctx.cmd = "" // flush the context
@@ -506,7 +528,7 @@ func processCmd(data *ReportData, node Node, ctx *Context) (string, error) {
 		return "", nil
 	}
 
-	if cmdName == "QUERY" || cmdName == "CMD_NODE" {
+	if cmdName == "QUERY" || cmdName == "CMD_NODE" || rest == "CMD_NODE" {
 		// logger.debug(`Ignoring ${cmdName} command`);
 		return "", IgnoreError
 		// ALIAS name ANYTHING ELSE THAT MIGHT BE PART OF THE COMMAND...
@@ -531,21 +553,10 @@ func processCmd(data *ReportData, node Node, ctx *Context) (string, error) {
 		// INS <expression>
 	} else if cmdName == "INS" {
 		if !isLoopExploring(ctx) {
-			var value string
 
-			if args, isFunction := parseFunctionCall(rest); isFunction {
-				funcName := args[0]
-				args = args[1:]
-
-				var err error
-				value, err = runFunction(funcName, args, ctx, data)
-				if err != nil {
-					return "", err
-				}
-			} else if varValue, ok := getValue(rest, ctx, data); ok {
-				value = fmt.Sprintf("%v", varValue)
-			} else if ctx.options.ErrorHandler != nil {
-				value = ctx.options.ErrorHandler(&KeyNotFoundError{Key: rest}, rest)
+			value, err := runAndGetValue(rest, ctx, data)
+			if err != nil {
+				return "", err
 			}
 
 			if ctx.options.ProcessLineBreaks {
