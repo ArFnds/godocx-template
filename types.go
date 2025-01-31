@@ -1,4 +1,4 @@
-package report
+package godocx
 
 import "github.com/ArFnds/godocx-template/internal"
 
