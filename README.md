@@ -9,7 +9,7 @@ Template-based docx report creation. ([See the blog post](http://guigrpa.github.
 
 ## Features 
 * **Insert the data** in your document (`INS`, `=` or just *nothing*)
-* **Embed images** (`IMAGE`). Dynamic images can be great for on-the-fly QR codes, downloading photos straight to your reports, charts… even maps!
+* **Embed images and HTML** (`IMAGE`, `HTML`). Dynamic images can be great for on-the-fly QR codes, downloading photos straight to your reports, charts… even maps!
 * Add **loops** with `FOR`/`END-FOR` commands, with support for table rows, nested loops, and JavaScript processing of elements (filter, sort, etc)
 
 
@@ -27,20 +27,20 @@ Contributions are welcome!
 # Table of contents
 
 - [Godocx-templates](#godocx-templates)
-  - [Why?](#why)
-  - [Features](#features)
-    - [Not yet supported](#not-yet-supported)
+	- [Why?](#why)
+	- [Features](#features)
+		- [Not yet supported](#not-yet-supported)
 - [Table of contents](#table-of-contents)
 - [Installation](#installation)
 - [Usage](#usage)
 - [Writing templates](#writing-templates)
-  - [Custom command delimiters](#custom-command-delimiters)
-  - [Supported commands](#supported-commands)
-    - [Insert data with the `INS` command ( or using `=`, or nothing at all)](#insert-data-with-the-ins-command--or-using--or-nothing-at-all)
-    - [`QUERY`](#query)
-    - [`IMAGE`](#image)
-    - [`FOR` and `END-FOR`](#for-and-end-for)
-  - [Inserting literal XML](#inserting-literal-xml)
+	- [Custom command delimiters](#custom-command-delimiters)
+	- [Supported commands](#supported-commands)
+		- [Insert data with the `INS` command ( or using `=`, or nothing at all)](#insert-data-with-the-ins-command--or-using--or-nothing-at-all)
+		- [`HTML`](#html)
+		- [`IMAGE`](#image)
+		- [`FOR` and `END-FOR`](#for-and-end-for)
+	- [Inserting literal XML](#inserting-literal-xml)
 - [Error handling](#error-handling)
 - [Performance \& security](#performance--security)
 - [License (MIT)](#license-mit)
@@ -109,9 +109,7 @@ You can use different **left/right command delimiters** by passing an object to 
 
 This allows much cleaner-looking templates!
 
-Then you can add commands and JS snippets in your template like this: `{foo}`, `{project.name}`, `{FOR ...}`.
-
-When choosing a delimiter, take care not to introduce conflicts with JS syntax, especially if you are planning to use larger JS code snippets in your templates. For example, with `['{', '}']` you may run into conflicts as the brackets in your JS code may be mistaken for command delimiters. As an alternative, consider using multi-character delimiters, like `{#` and `#}` (see issue [#102](https://github.com/guigrpa/docx-templates/issues/102)).
+Then you can add commands in your template like this: `{foo}`, `{project.name}`, `{FOR ...}`.
 
 
 ## Supported commands
@@ -139,7 +137,7 @@ func main() {
    }
 
    options := CreateReportOptions{
-      LiteralXmlDelimiter: "+++",
+      LiteralXmlDelimiter: "||",
    }
 
    outBuf, err := CreateReport("mytemplate.docx", &data, options)
@@ -180,35 +178,26 @@ Even shorter (and with custom `cmdDelimiter: ['{', '}']`):
 ```
 {name} {surname}
 ```
+### `HTML`
 
+Takes the HTML resulting from evaluating a JavaScript snippet and converts it to Word contents.
 
-### `QUERY`
-
-You can use GraphQL, SQL, whatever you want: the query will be passed unchanged to your `data` query resolver.
+**Important:** This uses [altchunk](https://blogs.msdn.microsoft.com/ericwhite/2008/10/26/how-to-use-altchunk-for-document-assembly/), which is only supported in Microsoft Word, and not in e.g. LibreOffice or Google Docs.
 
 ```
-+++QUERY
-query getData($projectId: Int!) {
-  project(id: $projectId) {
-    name
-    details { year }
-    people(sortedBy: "name") { name }
-  }
-}
-+++
++++HTML `
+<meta charset="UTF-8">
+<body>
+  <h1>${$film.title}</h1>
+  <h3>${$film.releaseDate.slice(0, 4)}</h3>
+  <p>
+    <strong style="color: red;">This paragraph should be red and strong</strong>
+  </p>
+</body>
+`+++
 ```
 
-For the following sections (except where noted), we assume the following dataset:
 
-```js
-const data = {
-  project: {
-    name: 'docx-templates',
-    details: { year: '2016' },
-    people: [{ name: 'John', since: 2015 }, { name: 'Robert', since: 2010 }],
-  },
-};
-```
 ### `IMAGE`
 
 **TODO**
