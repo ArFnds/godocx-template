@@ -4,6 +4,10 @@ Template-based docx report creation. ([See the blog post](http://guigrpa.github.
 
 HEAVILY inspired (aka copy/pasted) from [docx-templates](https://github.com/guigrpa/docx-templates) 🙏
 
+```sh
+go get github.com/ArFnds/godocx-template
+```
+
 ## Why?
 
 * **Write documents naturally using Word**, just adding some commands where needed for dynamic contents
@@ -16,8 +20,8 @@ HEAVILY inspired (aka copy/pasted) from [docx-templates](https://github.com/guig
 * Plenty of **examples** in this repo
 
 ### Not yet supported
-- [ ] **Embed hyperlinks ** (`LINK`).
-- [ ] Include contents **conditionally**, `IF` a certain JavaScript expression is truthy
+- [ ] **Embed hyperlinks** (`LINK`).
+- [ ] Include contents **conditionally**, `IF` 
 
 
 Contributions are welcome!
