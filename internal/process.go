@@ -21,6 +21,16 @@ type ReportOutput struct {
 type ReportData map[string]any
 
 func (rd ReportData) GetValue(key string) (value VarValue, ok bool) {
+
+	splitted := strings.Split(key, ".")
+	if len(splitted) > 1 {
+		value, ok = rd[splitted[0]]
+		if ok {
+			value = value.(map[string]any)[splitted[1]]
+		}
+		return
+	}
+
 	value, ok = rd[key]
 	return
 }
@@ -169,11 +179,16 @@ func processForIf(data *ReportData, node Node, ctx *Context, cmd string, cmdName
 			if forMatch == nil {
 				return errors.New("Invalid FOR command")
 			}
-			items, ok := data.GetArray(forMatch[2])
-			if !ok {
-				return errors.New("Invalid FOR command (can only iterate over Array) " + cmd)
+			items, err := runAndGetValue(forMatch[2], ctx, data)
+			if err != nil {
+				return fmt.Errorf("Invalid FOR command (can only iterate over Array) %s: %w", forMatch[2], err)
 			}
-			for _, item := range items {
+			reflected := reflect.ValueOf(items)
+			if reflected.Kind() != reflect.Slice {
+				return fmt.Errorf("Invalid FOR command (can only iterate over Array) %s: %v", forMatch[2], reflected.Kind())
+			}
+			for i := 0; i < reflected.Len(); i++ {
+				item := reflected.Index(i).Interface()
 				loopOver = append(loopOver, item)
 			}
 		}
