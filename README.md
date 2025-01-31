@@ -2,6 +2,7 @@
 
 Template-based docx report creation. ([See the blog post](http://guigrpa.github.io/2017/01/01/word-docs-the-relay-way/)).
 
+HEAVILY inspired (aka copy/pasted) from [docx-templates](https://github.com/guigrpa/docx-templates) 🙏
 
 ## Why?
 
@@ -11,16 +12,13 @@ Template-based docx report creation. ([See the blog post](http://guigrpa.github.
 * **Insert the data** in your document (`INS`, `=` or just *nothing*)
 * **Embed images and HTML** (`IMAGE`, `HTML`). Dynamic images can be great for on-the-fly QR codes, downloading photos straight to your reports, charts… even maps!
 * Add **loops** with `FOR`/`END-FOR` commands, with support for table rows, nested loops, and JavaScript processing of elements (filter, sort, etc)
-
+* Define custom **aliases** for some commands (`ALIAS`) — useful for writing table templates!
+* Plenty of **examples** in this repo
 
 ### Not yet supported
-- [ ] **Embed hyperlinks and even HTML dynamically** (`LINK`, `HTML`).
+- [ ] **Embed hyperlinks ** (`LINK`).
 - [ ] Include contents **conditionally**, `IF` a certain JavaScript expression is truthy
-- [ ] Define custom **aliases** for some commands (`ALIAS`) — useful for writing table templates!
-- [ ] Include **literal XML**
-- [ ] Written in TypeScript, so ships with type definitions.
-- [ ] Plenty of **examples** in this repo (with Node, Webpack and Browserify)
-- [ ] Supports `.docm` templates in addition to regular `.docx` files.
+
 
 Contributions are welcome!
 
@@ -40,9 +38,8 @@ Contributions are welcome!
 		- [`HTML`](#html)
 		- [`IMAGE`](#image)
 		- [`FOR` and `END-FOR`](#for-and-end-for)
+		- [`ALIAS` (and alias resolution with `*`)](#alias-and-alias-resolution-with-)
 	- [Inserting literal XML](#inserting-literal-xml)
-- [Error handling](#error-handling)
-- [Performance \& security](#performance--security)
 - [License (MIT)](#license-mit)
 
 # Installation
@@ -71,7 +68,7 @@ func main() {
 		"dateOfDay":         time.Now().Local().Format("02/01/2006"),
 		"acceptDate":        time.Now().Local().Format("02/01/2006"),
 		"company":           "The company",
-      "persons": []map[string]any{
+      	"persons": []map[string]any{
 			{"firstname": "John", "lastname": "Doe"},
 			{"firstname": "Barn", "lastname": "Simson"},
 		},
@@ -178,6 +175,7 @@ Even shorter (and with custom `cmdDelimiter: ['{', '}']`):
 ```
 {name} {surname}
 ```
+
 ### `HTML`
 
 Takes the HTML resulting from evaluating a JavaScript snippet and converts it to Word contents.
@@ -199,8 +197,6 @@ Takes the HTML resulting from evaluating a JavaScript snippet and converts it to
 
 
 ### `IMAGE`
-
-**TODO**
 
 The value should be an _ImagePars_, containing:
 
@@ -301,6 +297,26 @@ Finally, you can nest loops (this example assumes a different data set):
 +++END-FOR company+++
 ```
 
+### `ALIAS` (and alias resolution with `*`)
+
+Define a name for a complete command (especially useful for formatting tables):
+
+```
++++ALIAS name INS $person.name+++
++++ALIAS since INS $person.since+++
+
+----------------------------------------------------------
+| Name                         | Since                   |
+----------------------------------------------------------
+| +++FOR person IN             |                         |
+| project.people+++            |                         |
+----------------------------------------------------------
+| +++*name+++                  | +++*since+++            |
+----------------------------------------------------------
+| +++END-FOR person+++         |                         |
+----------------------------------------------------------
+```
+
 ## Inserting literal XML
 You can also directly insert Office Open XML markup into the document using the `literalXmlDelimiter`, which is by default set to `||`.
 
@@ -315,14 +331,6 @@ data := ReportData{ "text": "foo||<w:br/>||bar" }
 ```
 
 See http://officeopenxml.com/anatomyofOOXML.php for a good reference of the internal XML structure of a docx file.
-
-# Error handling
-
-**TODO**
-
-# Performance & security
-
-
 
 # License (MIT)
 
