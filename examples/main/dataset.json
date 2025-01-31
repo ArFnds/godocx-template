@@ -1,0 +1,2695 @@
+{
+	"allFilms": {
+		"films": [
+			{
+				"title": "A New Hope",
+				"releaseDate": "1977",
+				"director": "George Lucas",
+				"producers": ["Gary Kurtz", "Rick McCallum"],
+				"openingCrawl": "It is a period of civil war. Rebel spaceships, striking from a hidden base, have won their first victory against the evil Galactic Empire.  During the battle, Rebel spies managed to steal secret plans to the Empire's ultimate weapon, the DEATH STAR, an armored space station with enough power to destroy an entire planet.  Pursued by the Empire's sinister agents, Princess Leia races home aboard her starship, custodian of the stolen plans that can save her people and restore freedom to the galaxy....",
+				"characterConnection": {
+					"characters": [
+						{
+							"name": "Luke Skywalker",
+							"species": {
+								"name": "Human"
+							},
+							"homeworld": {
+								"name": "Tatooine"
+							},
+							"starshipConnection": {
+								"starships": [
+									{
+										"name": "X-wing",
+										"crew": "1",
+										"passengers": "0"
+									},
+									{
+										"name": "Imperial shuttle",
+										"crew": "6",
+										"passengers": "20"
+									}
+								]
+							}
+						},
+						{
+							"name": "C-3PO",
+							"species": {
+								"name": "Droid"
+							},
+							"homeworld": {
+								"name": "Tatooine"
+							},
+							"starshipConnection": {
+								"starships": []
+							}
+						},
+						{
+							"name": "R2-D2",
+							"species": {
+								"name": "Droid"
+							},
+							"homeworld": {
+								"name": "Naboo"
+							},
+							"starshipConnection": {
+								"starships": []
+							}
+						},
+						{
+							"name": "Darth Vader",
+							"species": {
+								"name": "Human"
+							},
+							"homeworld": {
+								"name": "Tatooine"
+							},
+							"starshipConnection": {
+								"starships": [
+									{
+										"name": "TIE Advanced x1",
+										"crew": "1",
+										"passengers": "0"
+									}
+								]
+							}
+						},
+						{
+							"name": "Leia Organa",
+							"species": {
+								"name": "Human"
+							},
+							"homeworld": {
+								"name": "Alderaan"
+							},
+							"starshipConnection": {
+								"starships": []
+							}
+						},
+						{
+							"name": "Owen Lars",
+							"species": {
+								"name": "Human"
+							},
+							"homeworld": {
+								"name": "Tatooine"
+							},
+							"starshipConnection": {
+								"starships": []
+							}
+						},
+						{
+							"name": "Beru Whitesun lars",
+							"species": {
+								"name": "Human"
+							},
+							"homeworld": {
+								"name": "Tatooine"
+							},
+							"starshipConnection": {
+								"starships": []
+							}
+						},
+						{
+							"name": "R5-D4",
+							"species": {
+								"name": "Droid"
+							},
+							"homeworld": {
+								"name": "Tatooine"
+							},
+							"starshipConnection": {
+								"starships": []
+							}
+						},
+						{
+							"name": "Biggs Darklighter",
+							"species": {
+								"name": "Human"
+							},
+							"homeworld": {
+								"name": "Tatooine"
+							},
+							"starshipConnection": {
+								"starships": [
+									{
+										"name": "X-wing",
+										"crew": "1",
+										"passengers": "0"
+									}
+								]
+							}
+						},
+						{
+							"name": "Obi-Wan Kenobi",
+							"species": {
+								"name": "Human"
+							},
+							"homeworld": {
+								"name": "Stewjon"
+							},
+							"starshipConnection": {
+								"starships": [
+									{
+										"name": "Jedi starfighter",
+										"crew": "1",
+										"passengers": "0"
+									},
+									{
+										"name": "Trade Federation cruiser",
+										"crew": "600",
+										"passengers": "48247"
+									},
+									{
+										"name": "Naboo star skiff",
+										"crew": "3",
+										"passengers": "3"
+									},
+									{
+										"name": "Jedi Interceptor",
+										"crew": "1",
+										"passengers": "0"
+									},
+									{
+										"name": "Belbullab-22 starfighter",
+										"crew": "1",
+										"passengers": "0"
+									}
+								]
+							}
+						},
+						{
+							"name": "Wilhuff Tarkin",
+							"species": {
+								"name": "Human"
+							},
+							"homeworld": {
+								"name": "Eriadu"
+							},
+							"starshipConnection": {
+								"starships": []
+							}
+						},
+						{
+							"name": "Chewbacca",
+							"species": {
+								"name": "Wookiee"
+							},
+							"homeworld": {
+								"name": "Kashyyyk"
+							},
+							"starshipConnection": {
+								"starships": [
+									{
+										"name": "Millennium Falcon",
+										"crew": "4",
+										"passengers": "6"
+									},
+									{
+										"name": "Imperial shuttle",
+										"crew": "6",
+										"passengers": "20"
+									}
+								]
+							}
+						},
+						{
+							"name": "Han Solo",
+							"species": {
+								"name": "Human"
+							},
+							"homeworld": {
+								"name": "Corellia"
+							},
+							"starshipConnection": {
+								"starships": [
+									{
+										"name": "Millennium Falcon",
+										"crew": "4",
+										"passengers": "6"
+									},
+									{
+										"name": "Imperial shuttle",
+										"crew": "6",
+										"passengers": "20"
+									}
+								]
+							}
+						},
+						{
+							"name": "Greedo",
+							"species": {
+								"name": "Rodian"
+							},
+							"homeworld": {
+								"name": "Rodia"
+							},
+							"starshipConnection": {
+								"starships": []
+							}
+						},
+						{
+							"name": "Jabba Desilijic Tiure",
+							"species": {
+								"name": "Hutt"
+							},
+							"homeworld": {
+								"name": "Nal Hutta"
+							},
+							"starshipConnection": {
+								"starships": []
+							}
+						},
+						{
+							"name": "Wedge Antilles",
+							"species": {
+								"name": "Human"
+							},
+							"homeworld": {
+								"name": "Corellia"
+							},
+							"starshipConnection": {
+								"starships": [
+									{
+										"name": "X-wing",
+										"crew": "1",
+										"passengers": "0"
+									}
+								]
+							}
+						},
+						{
+							"name": "Jek Tono Porkins",
+							"species": {
+								"name": "Human"
+							},
+							"homeworld": {
+								"name": "Bestine IV"
+							},
+							"starshipConnection": {
+								"starships": [
+									{
+										"name": "X-wing",
+										"crew": "1",
+										"passengers": "0"
+									}
+								]
+							}
+						},
+						{
+							"name": "Raymus Antilles",
+							"species": {
+								"name": "Human"
+							},
+							"homeworld": {
+								"name": "Alderaan"
+							},
+							"starshipConnection": {
+								"starships": []
+							}
+						}
+					]
+				}
+			},
+			{
+				"title": "The Empire Strikes Back",
+				"releaseDate": "1980",
+				"director": "Irvin Kershner",
+				"producers": ["Gary Kurtz", "Rick McCallum"],
+				"openingCrawl": "It is a dark time for the Rebellion. Although the Death Star has been destroyed, Imperial troops have driven the Rebel forces from their hidden base and pursued them across the galaxy.  Evading the dreaded Imperial Starfleet, a group of freedom fighters led by Luke Skywalker has established a new secret base on the remote ice world of Hoth.  The evil lord Darth Vader, obsessed with finding young Skywalker, has dispatched thousands of remote probes into the far reaches of space....",
+				"characterConnection": {
+					"characters": [
+						{
+							"name": "Luke Skywalker",
+							"species": {
+								"name": "Human"
+							},
+							"homeworld": {
+								"name": "Tatooine"
+							},
+							"starshipConnection": {
+								"starships": [
+									{
+										"name": "X-wing",
+										"crew": "1",
+										"passengers": "0"
+									},
+									{
+										"name": "Imperial shuttle",
+										"crew": "6",
+										"passengers": "20"
+									}
+								]
+							}
+						},
+						{
+							"name": "C-3PO",
+							"species": {
+								"name": "Droid"
+							},
+							"homeworld": {
+								"name": "Tatooine"
+							},
+							"starshipConnection": {
+								"starships": []
+							}
+						},
+						{
+							"name": "R2-D2",
+							"species": {
+								"name": "Droid"
+							},
+							"homeworld": {
+								"name": "Naboo"
+							},
+							"starshipConnection": {
+								"starships": []
+							}
+						},
+						{
+							"name": "Darth Vader",
+							"species": {
+								"name": "Human"
+							},
+							"homeworld": {
+								"name": "Tatooine"
+							},
+							"starshipConnection": {
+								"starships": [
+									{
+										"name": "TIE Advanced x1",
+										"crew": "1",
+										"passengers": "0"
+									}
+								]
+							}
+						},
+						{
+							"name": "Leia Organa",
+							"species": {
+								"name": "Human"
+							},
+							"homeworld": {
+								"name": "Alderaan"
+							},
+							"starshipConnection": {
+								"starships": []
+							}
+						},
+						{
+							"name": "Obi-Wan Kenobi",
+							"species": {
+								"name": "Human"
+							},
+							"homeworld": {
+								"name": "Stewjon"
+							},
+							"starshipConnection": {
+								"starships": [
+									{
+										"name": "Jedi starfighter",
+										"crew": "1",
+										"passengers": "0"
+									},
+									{
+										"name": "Trade Federation cruiser",
+										"crew": "600",
+										"passengers": "48247"
+									},
+									{
+										"name": "Naboo star skiff",
+										"crew": "3",
+										"passengers": "3"
+									},
+									{
+										"name": "Jedi Interceptor",
+										"crew": "1",
+										"passengers": "0"
+									},
+									{
+										"name": "Belbullab-22 starfighter",
+										"crew": "1",
+										"passengers": "0"
+									}
+								]
+							}
+						},
+						{
+							"name": "Chewbacca",
+							"species": {
+								"name": "Wookiee"
+							},
+							"homeworld": {
+								"name": "Kashyyyk"
+							},
+							"starshipConnection": {
+								"starships": [
+									{
+										"name": "Millennium Falcon",
+										"crew": "4",
+										"passengers": "6"
+									},
+									{
+										"name": "Imperial shuttle",
+										"crew": "6",
+										"passengers": "20"
+									}
+								]
+							}
+						},
+						{
+							"name": "Han Solo",
+							"species": {
+								"name": "Human"
+							},
+							"homeworld": {
+								"name": "Corellia"
+							},
+							"starshipConnection": {
+								"starships": [
+									{
+										"name": "Millennium Falcon",
+										"crew": "4",
+										"passengers": "6"
+									},
+									{
+										"name": "Imperial shuttle",
+										"crew": "6",
+										"passengers": "20"
+									}
+								]
+							}
+						},
+						{
+							"name": "Wedge Antilles",
+							"species": {
+								"name": "Human"
+							},
+							"homeworld": {
+								"name": "Corellia"
+							},
+							"starshipConnection": {
+								"starships": [
+									{
+										"name": "X-wing",
+										"crew": "1",
+										"passengers": "0"
+									}
+								]
+							}
+						},
+						{
+							"name": "Yoda",
+							"species": {
+								"name": "Yoda's species"
+							},
+							"homeworld": {
+								"name": "unknown"
+							},
+							"starshipConnection": {
+								"starships": []
+							}
+						},
+						{
+							"name": "Palpatine",
+							"species": {
+								"name": "Human"
+							},
+							"homeworld": {
+								"name": "Naboo"
+							},
+							"starshipConnection": {
+								"starships": []
+							}
+						},
+						{
+							"name": "Boba Fett",
+							"species": {
+								"name": "Human"
+							},
+							"homeworld": {
+								"name": "Kamino"
+							},
+							"starshipConnection": {
+								"starships": [
+									{
+										"name": "Slave 1",
+										"crew": "1",
+										"passengers": "6"
+									}
+								]
+							}
+						},
+						{
+							"name": "IG-88",
+							"species": {
+								"name": "Droid"
+							},
+							"homeworld": {
+								"name": "unknown"
+							},
+							"starshipConnection": {
+								"starships": []
+							}
+						},
+						{
+							"name": "Bossk",
+							"species": {
+								"name": "Trandoshan"
+							},
+							"homeworld": {
+								"name": "Trandosha"
+							},
+							"starshipConnection": {
+								"starships": []
+							}
+						},
+						{
+							"name": "Lando Calrissian",
+							"species": {
+								"name": "Human"
+							},
+							"homeworld": {
+								"name": "Socorro"
+							},
+							"starshipConnection": {
+								"starships": [
+									{
+										"name": "Millennium Falcon",
+										"crew": "4",
+										"passengers": "6"
+									}
+								]
+							}
+						},
+						{
+							"name": "Lobot",
+							"species": {
+								"name": "Human"
+							},
+							"homeworld": {
+								"name": "Bespin"
+							},
+							"starshipConnection": {
+								"starships": []
+							}
+						}
+					]
+				}
+			},
+			{
+				"title": "Return of the Jedi",
+				"releaseDate": "1983",
+				"director": "Richard Marquand",
+				"producers": ["Howard G. Kazanjian", "George Lucas", "Rick McCallum"],
+				"openingCrawl": "Luke Skywalker has returned to his home planet of Tatooine in an attempt to rescue his friend Han Solo from the clutches of the vile gangster Jabba the Hutt.  Little does Luke know that the GALACTIC EMPIRE has secretly begun construction on a new armored space station even more powerful than the first dreaded Death Star.  When completed, this ultimate weapon will spell certain doom for the small band of rebels struggling to restore freedom to the galaxy...",
+				"characterConnection": {
+					"characters": [
+						{
+							"name": "Luke Skywalker",
+							"species": {
+								"name": "Human"
+							},
+							"homeworld": {
+								"name": "Tatooine"
+							},
+							"starshipConnection": {
+								"starships": [
+									{
+										"name": "X-wing",
+										"crew": "1",
+										"passengers": "0"
+									},
+									{
+										"name": "Imperial shuttle",
+										"crew": "6",
+										"passengers": "20"
+									}
+								]
+							}
+						},
+						{
+							"name": "C-3PO",
+							"species": {
+								"name": "Droid"
+							},
+							"homeworld": {
+								"name": "Tatooine"
+							},
+							"starshipConnection": {
+								"starships": []
+							}
+						},
+						{
+							"name": "R2-D2",
+							"species": {
+								"name": "Droid"
+							},
+							"homeworld": {
+								"name": "Naboo"
+							},
+							"starshipConnection": {
+								"starships": []
+							}
+						},
+						{
+							"name": "Darth Vader",
+							"species": {
+								"name": "Human"
+							},
+							"homeworld": {
+								"name": "Tatooine"
+							},
+							"starshipConnection": {
+								"starships": [
+									{
+										"name": "TIE Advanced x1",
+										"crew": "1",
+										"passengers": "0"
+									}
+								]
+							}
+						},
+						{
+							"name": "Leia Organa",
+							"species": {
+								"name": "Human"
+							},
+							"homeworld": {
+								"name": "Alderaan"
+							},
+							"starshipConnection": {
+								"starships": []
+							}
+						},
+						{
+							"name": "Obi-Wan Kenobi",
+							"species": {
+								"name": "Human"
+							},
+							"homeworld": {
+								"name": "Stewjon"
+							},
+							"starshipConnection": {
+								"starships": [
+									{
+										"name": "Jedi starfighter",
+										"crew": "1",
+										"passengers": "0"
+									},
+									{
+										"name": "Trade Federation cruiser",
+										"crew": "600",
+										"passengers": "48247"
+									},
+									{
+										"name": "Naboo star skiff",
+										"crew": "3",
+										"passengers": "3"
+									},
+									{
+										"name": "Jedi Interceptor",
+										"crew": "1",
+										"passengers": "0"
+									},
+									{
+										"name": "Belbullab-22 starfighter",
+										"crew": "1",
+										"passengers": "0"
+									}
+								]
+							}
+						},
+						{
+							"name": "Chewbacca",
+							"species": {
+								"name": "Wookiee"
+							},
+							"homeworld": {
+								"name": "Kashyyyk"
+							},
+							"starshipConnection": {
+								"starships": [
+									{
+										"name": "Millennium Falcon",
+										"crew": "4",
+										"passengers": "6"
+									},
+									{
+										"name": "Imperial shuttle",
+										"crew": "6",
+										"passengers": "20"
+									}
+								]
+							}
+						},
+						{
+							"name": "Han Solo",
+							"species": {
+								"name": "Human"
+							},
+							"homeworld": {
+								"name": "Corellia"
+							},
+							"starshipConnection": {
+								"starships": [
+									{
+										"name": "Millennium Falcon",
+										"crew": "4",
+										"passengers": "6"
+									},
+									{
+										"name": "Imperial shuttle",
+										"crew": "6",
+										"passengers": "20"
+									}
+								]
+							}
+						},
+						{
+							"name": "Jabba Desilijic Tiure",
+							"species": {
+								"name": "Hutt"
+							},
+							"homeworld": {
+								"name": "Nal Hutta"
+							},
+							"starshipConnection": {
+								"starships": []
+							}
+						},
+						{
+							"name": "Wedge Antilles",
+							"species": {
+								"name": "Human"
+							},
+							"homeworld": {
+								"name": "Corellia"
+							},
+							"starshipConnection": {
+								"starships": [
+									{
+										"name": "X-wing",
+										"crew": "1",
+										"passengers": "0"
+									}
+								]
+							}
+						},
+						{
+							"name": "Yoda",
+							"species": {
+								"name": "Yoda's species"
+							},
+							"homeworld": {
+								"name": "unknown"
+							},
+							"starshipConnection": {
+								"starships": []
+							}
+						},
+						{
+							"name": "Palpatine",
+							"species": {
+								"name": "Human"
+							},
+							"homeworld": {
+								"name": "Naboo"
+							},
+							"starshipConnection": {
+								"starships": []
+							}
+						},
+						{
+							"name": "Boba Fett",
+							"species": {
+								"name": "Human"
+							},
+							"homeworld": {
+								"name": "Kamino"
+							},
+							"starshipConnection": {
+								"starships": [
+									{
+										"name": "Slave 1",
+										"crew": "1",
+										"passengers": "6"
+									}
+								]
+							}
+						},
+						{
+							"name": "Lando Calrissian",
+							"species": {
+								"name": "Human"
+							},
+							"homeworld": {
+								"name": "Socorro"
+							},
+							"starshipConnection": {
+								"starships": [
+									{
+										"name": "Millennium Falcon",
+										"crew": "4",
+										"passengers": "6"
+									}
+								]
+							}
+						},
+						{
+							"name": "Ackbar",
+							"species": {
+								"name": "Mon Calamari"
+							},
+							"homeworld": {
+								"name": "Mon Cala"
+							},
+							"starshipConnection": {
+								"starships": []
+							}
+						},
+						{
+							"name": "Mon Mothma",
+							"species": {
+								"name": "Human"
+							},
+							"homeworld": {
+								"name": "Chandrila"
+							},
+							"starshipConnection": {
+								"starships": []
+							}
+						},
+						{
+							"name": "Arvel Crynyd",
+							"species": {
+								"name": "Human"
+							},
+							"homeworld": {
+								"name": "unknown"
+							},
+							"starshipConnection": {
+								"starships": [
+									{
+										"name": "A-wing",
+										"crew": "1",
+										"passengers": "0"
+									}
+								]
+							}
+						},
+						{
+							"name": "Wicket Systri Warrick",
+							"species": {
+								"name": "Ewok"
+							},
+							"homeworld": {
+								"name": "Endor"
+							},
+							"starshipConnection": {
+								"starships": []
+							}
+						},
+						{
+							"name": "Nien Nunb",
+							"species": {
+								"name": "Sullustan"
+							},
+							"homeworld": {
+								"name": "Sullust"
+							},
+							"starshipConnection": {
+								"starships": [
+									{
+										"name": "Millennium Falcon",
+										"crew": "4",
+										"passengers": "6"
+									}
+								]
+							}
+						},
+						{
+							"name": "Bib Fortuna",
+							"species": {
+								"name": "Twi'lek"
+							},
+							"homeworld": {
+								"name": "Ryloth"
+							},
+							"starshipConnection": {
+								"starships": []
+							}
+						}
+					]
+				}
+			},
+			{
+				"title": "The Phantom Menace",
+				"releaseDate": "1999",
+				"director": "George Lucas",
+				"producers": ["Rick McCallum"],
+				"openingCrawl": "Turmoil has engulfed the Galactic Republic. The taxation of trade routes to outlying star systems is in dispute.  Hoping to resolve the matter with a blockade of deadly battleships, the greedy Trade Federation has stopped all shipping to the small planet of Naboo.  While the Congress of the Republic endlessly debates this alarming chain of events, the Supreme Chancellor has secretly dispatched two Jedi Knights, the guardians of peace and justice in the galaxy, to settle the conflict....",
+				"characterConnection": {
+					"characters": [
+						{
+							"name": "C-3PO",
+							"species": {
+								"name": "Droid"
+							},
+							"homeworld": {
+								"name": "Tatooine"
+							},
+							"starshipConnection": {
+								"starships": []
+							}
+						},
+						{
+							"name": "R2-D2",
+							"species": {
+								"name": "Droid"
+							},
+							"homeworld": {
+								"name": "Naboo"
+							},
+							"starshipConnection": {
+								"starships": []
+							}
+						},
+						{
+							"name": "Obi-Wan Kenobi",
+							"species": {
+								"name": "Human"
+							},
+							"homeworld": {
+								"name": "Stewjon"
+							},
+							"starshipConnection": {
+								"starships": [
+									{
+										"name": "Jedi starfighter",
+										"crew": "1",
+										"passengers": "0"
+									},
+									{
+										"name": "Trade Federation cruiser",
+										"crew": "600",
+										"passengers": "48247"
+									},
+									{
+										"name": "Naboo star skiff",
+										"crew": "3",
+										"passengers": "3"
+									},
+									{
+										"name": "Jedi Interceptor",
+										"crew": "1",
+										"passengers": "0"
+									},
+									{
+										"name": "Belbullab-22 starfighter",
+										"crew": "1",
+										"passengers": "0"
+									}
+								]
+							}
+						},
+						{
+							"name": "Anakin Skywalker",
+							"species": {
+								"name": "Human"
+							},
+							"homeworld": {
+								"name": "Tatooine"
+							},
+							"starshipConnection": {
+								"starships": [
+									{
+										"name": "Naboo fighter",
+										"crew": "1",
+										"passengers": "0"
+									},
+									{
+										"name": "Trade Federation cruiser",
+										"crew": "600",
+										"passengers": "48247"
+									},
+									{
+										"name": "Jedi Interceptor",
+										"crew": "1",
+										"passengers": "0"
+									}
+								]
+							}
+						},
+						{
+							"name": "Jabba Desilijic Tiure",
+							"species": {
+								"name": "Hutt"
+							},
+							"homeworld": {
+								"name": "Nal Hutta"
+							},
+							"starshipConnection": {
+								"starships": []
+							}
+						},
+						{
+							"name": "Yoda",
+							"species": {
+								"name": "Yoda's species"
+							},
+							"homeworld": {
+								"name": "unknown"
+							},
+							"starshipConnection": {
+								"starships": []
+							}
+						},
+						{
+							"name": "Palpatine",
+							"species": {
+								"name": "Human"
+							},
+							"homeworld": {
+								"name": "Naboo"
+							},
+							"starshipConnection": {
+								"starships": []
+							}
+						},
+						{
+							"name": "Qui-Gon Jinn",
+							"species": {
+								"name": "Human"
+							},
+							"homeworld": {
+								"name": "unknown"
+							},
+							"starshipConnection": {
+								"starships": []
+							}
+						},
+						{
+							"name": "Nute Gunray",
+							"species": {
+								"name": "Neimodian"
+							},
+							"homeworld": {
+								"name": "Cato Neimoidia"
+							},
+							"starshipConnection": {
+								"starships": []
+							}
+						},
+						{
+							"name": "Finis Valorum",
+							"species": {
+								"name": "Human"
+							},
+							"homeworld": {
+								"name": "Coruscant"
+							},
+							"starshipConnection": {
+								"starships": []
+							}
+						},
+						{
+							"name": "Padmé Amidala",
+							"species": {
+								"name": "Human"
+							},
+							"homeworld": {
+								"name": "Naboo"
+							},
+							"starshipConnection": {
+								"starships": [
+									{
+										"name": "Naboo fighter",
+										"crew": "1",
+										"passengers": "0"
+									},
+									{
+										"name": "H-type Nubian yacht",
+										"crew": "4",
+										"passengers": "unknown"
+									},
+									{
+										"name": "Naboo star skiff",
+										"crew": "3",
+										"passengers": "3"
+									}
+								]
+							}
+						},
+						{
+							"name": "Jar Jar Binks",
+							"species": {
+								"name": "Gungan"
+							},
+							"homeworld": {
+								"name": "Naboo"
+							},
+							"starshipConnection": {
+								"starships": []
+							}
+						},
+						{
+							"name": "Roos Tarpals",
+							"species": {
+								"name": "Gungan"
+							},
+							"homeworld": {
+								"name": "Naboo"
+							},
+							"starshipConnection": {
+								"starships": []
+							}
+						},
+						{
+							"name": "Rugor Nass",
+							"species": {
+								"name": "Gungan"
+							},
+							"homeworld": {
+								"name": "Naboo"
+							},
+							"starshipConnection": {
+								"starships": []
+							}
+						},
+						{
+							"name": "Ric Olié",
+							"species": null,
+							"homeworld": {
+								"name": "Naboo"
+							},
+							"starshipConnection": {
+								"starships": [
+									{
+										"name": "Naboo Royal Starship",
+										"crew": "8",
+										"passengers": "unknown"
+									}
+								]
+							}
+						},
+						{
+							"name": "Watto",
+							"species": {
+								"name": "Toydarian"
+							},
+							"homeworld": {
+								"name": "Toydaria"
+							},
+							"starshipConnection": {
+								"starships": []
+							}
+						},
+						{
+							"name": "Sebulba",
+							"species": {
+								"name": "Dug"
+							},
+							"homeworld": {
+								"name": "Malastare"
+							},
+							"starshipConnection": {
+								"starships": []
+							}
+						},
+						{
+							"name": "Quarsh Panaka",
+							"species": null,
+							"homeworld": {
+								"name": "Naboo"
+							},
+							"starshipConnection": {
+								"starships": []
+							}
+						},
+						{
+							"name": "Shmi Skywalker",
+							"species": {
+								"name": "Human"
+							},
+							"homeworld": {
+								"name": "Tatooine"
+							},
+							"starshipConnection": {
+								"starships": []
+							}
+						},
+						{
+							"name": "Darth Maul",
+							"species": {
+								"name": "Zabrak"
+							},
+							"homeworld": {
+								"name": "Dathomir"
+							},
+							"starshipConnection": {
+								"starships": [
+									{
+										"name": "Scimitar",
+										"crew": "1",
+										"passengers": "6"
+									}
+								]
+							}
+						},
+						{
+							"name": "Ayla Secura",
+							"species": {
+								"name": "Twi'lek"
+							},
+							"homeworld": {
+								"name": "Ryloth"
+							},
+							"starshipConnection": {
+								"starships": []
+							}
+						},
+						{
+							"name": "Ratts Tyerell",
+							"species": {
+								"name": "Aleena"
+							},
+							"homeworld": {
+								"name": "Aleen Minor"
+							},
+							"starshipConnection": {
+								"starships": []
+							}
+						},
+						{
+							"name": "Dud Bolt",
+							"species": {
+								"name": "Vulptereen"
+							},
+							"homeworld": {
+								"name": "Vulpter"
+							},
+							"starshipConnection": {
+								"starships": []
+							}
+						},
+						{
+							"name": "Gasgano",
+							"species": {
+								"name": "Xexto"
+							},
+							"homeworld": {
+								"name": "Troiken"
+							},
+							"starshipConnection": {
+								"starships": []
+							}
+						},
+						{
+							"name": "Ben Quadinaros",
+							"species": {
+								"name": "Toong"
+							},
+							"homeworld": {
+								"name": "Tund"
+							},
+							"starshipConnection": {
+								"starships": []
+							}
+						},
+						{
+							"name": "Mace Windu",
+							"species": {
+								"name": "Human"
+							},
+							"homeworld": {
+								"name": "Haruun Kal"
+							},
+							"starshipConnection": {
+								"starships": []
+							}
+						},
+						{
+							"name": "Ki-Adi-Mundi",
+							"species": {
+								"name": "Cerean"
+							},
+							"homeworld": {
+								"name": "Cerea"
+							},
+							"starshipConnection": {
+								"starships": []
+							}
+						},
+						{
+							"name": "Kit Fisto",
+							"species": {
+								"name": "Nautolan"
+							},
+							"homeworld": {
+								"name": "Glee Anselm"
+							},
+							"starshipConnection": {
+								"starships": []
+							}
+						},
+						{
+							"name": "Eeth Koth",
+							"species": {
+								"name": "Zabrak"
+							},
+							"homeworld": {
+								"name": "Iridonia"
+							},
+							"starshipConnection": {
+								"starships": []
+							}
+						},
+						{
+							"name": "Adi Gallia",
+							"species": {
+								"name": "Tholothian"
+							},
+							"homeworld": {
+								"name": "Coruscant"
+							},
+							"starshipConnection": {
+								"starships": []
+							}
+						},
+						{
+							"name": "Saesee Tiin",
+							"species": {
+								"name": "Iktotchi"
+							},
+							"homeworld": {
+								"name": "Iktotch"
+							},
+							"starshipConnection": {
+								"starships": []
+							}
+						},
+						{
+							"name": "Yarael Poof",
+							"species": {
+								"name": "Quermian"
+							},
+							"homeworld": {
+								"name": "Quermia"
+							},
+							"starshipConnection": {
+								"starships": []
+							}
+						},
+						{
+							"name": "Plo Koon",
+							"species": {
+								"name": "Kel Dor"
+							},
+							"homeworld": {
+								"name": "Dorin"
+							},
+							"starshipConnection": {
+								"starships": [
+									{
+										"name": "Jedi starfighter",
+										"crew": "1",
+										"passengers": "0"
+									}
+								]
+							}
+						},
+						{
+							"name": "Mas Amedda",
+							"species": {
+								"name": "Chagrian"
+							},
+							"homeworld": {
+								"name": "Champala"
+							},
+							"starshipConnection": {
+								"starships": []
+							}
+						}
+					]
+				}
+			},
+			{
+				"title": "Attack of the Clones",
+				"releaseDate": "2002",
+				"director": "George Lucas",
+				"producers": ["Rick McCallum"],
+				"openingCrawl": "There is unrest in the Galactic Senate. Several thousand solar systems have declared their intentions to leave the Republic.  This separatist movement, under the leadership of the mysterious Count Dooku, has made it difficult for the limited number of Jedi Knights to maintain  peace and order in the galaxy.  Senator Amidala, the former Queen of Naboo, is returning to the Galactic Senate to vote on the critical issue of creating an ARMY OF THE REPUBLIC to assist the overwhelmed Jedi....",
+				"characterConnection": {
+					"characters": [
+						{
+							"name": "C-3PO",
+							"species": {
+								"name": "Droid"
+							},
+							"homeworld": {
+								"name": "Tatooine"
+							},
+							"starshipConnection": {
+								"starships": []
+							}
+						},
+						{
+							"name": "R2-D2",
+							"species": {
+								"name": "Droid"
+							},
+							"homeworld": {
+								"name": "Naboo"
+							},
+							"starshipConnection": {
+								"starships": []
+							}
+						},
+						{
+							"name": "Owen Lars",
+							"species": {
+								"name": "Human"
+							},
+							"homeworld": {
+								"name": "Tatooine"
+							},
+							"starshipConnection": {
+								"starships": []
+							}
+						},
+						{
+							"name": "Beru Whitesun lars",
+							"species": {
+								"name": "Human"
+							},
+							"homeworld": {
+								"name": "Tatooine"
+							},
+							"starshipConnection": {
+								"starships": []
+							}
+						},
+						{
+							"name": "Obi-Wan Kenobi",
+							"species": {
+								"name": "Human"
+							},
+							"homeworld": {
+								"name": "Stewjon"
+							},
+							"starshipConnection": {
+								"starships": [
+									{
+										"name": "Jedi starfighter",
+										"crew": "1",
+										"passengers": "0"
+									},
+									{
+										"name": "Trade Federation cruiser",
+										"crew": "600",
+										"passengers": "48247"
+									},
+									{
+										"name": "Naboo star skiff",
+										"crew": "3",
+										"passengers": "3"
+									},
+									{
+										"name": "Jedi Interceptor",
+										"crew": "1",
+										"passengers": "0"
+									},
+									{
+										"name": "Belbullab-22 starfighter",
+										"crew": "1",
+										"passengers": "0"
+									}
+								]
+							}
+						},
+						{
+							"name": "Anakin Skywalker",
+							"species": {
+								"name": "Human"
+							},
+							"homeworld": {
+								"name": "Tatooine"
+							},
+							"starshipConnection": {
+								"starships": [
+									{
+										"name": "Naboo fighter",
+										"crew": "1",
+										"passengers": "0"
+									},
+									{
+										"name": "Trade Federation cruiser",
+										"crew": "600",
+										"passengers": "48247"
+									},
+									{
+										"name": "Jedi Interceptor",
+										"crew": "1",
+										"passengers": "0"
+									}
+								]
+							}
+						},
+						{
+							"name": "Yoda",
+							"species": {
+								"name": "Yoda's species"
+							},
+							"homeworld": {
+								"name": "unknown"
+							},
+							"starshipConnection": {
+								"starships": []
+							}
+						},
+						{
+							"name": "Palpatine",
+							"species": {
+								"name": "Human"
+							},
+							"homeworld": {
+								"name": "Naboo"
+							},
+							"starshipConnection": {
+								"starships": []
+							}
+						},
+						{
+							"name": "Boba Fett",
+							"species": {
+								"name": "Human"
+							},
+							"homeworld": {
+								"name": "Kamino"
+							},
+							"starshipConnection": {
+								"starships": [
+									{
+										"name": "Slave 1",
+										"crew": "1",
+										"passengers": "6"
+									}
+								]
+							}
+						},
+						{
+							"name": "Nute Gunray",
+							"species": {
+								"name": "Neimodian"
+							},
+							"homeworld": {
+								"name": "Cato Neimoidia"
+							},
+							"starshipConnection": {
+								"starships": []
+							}
+						},
+						{
+							"name": "Padmé Amidala",
+							"species": {
+								"name": "Human"
+							},
+							"homeworld": {
+								"name": "Naboo"
+							},
+							"starshipConnection": {
+								"starships": [
+									{
+										"name": "Naboo fighter",
+										"crew": "1",
+										"passengers": "0"
+									},
+									{
+										"name": "H-type Nubian yacht",
+										"crew": "4",
+										"passengers": "unknown"
+									},
+									{
+										"name": "Naboo star skiff",
+										"crew": "3",
+										"passengers": "3"
+									}
+								]
+							}
+						},
+						{
+							"name": "Jar Jar Binks",
+							"species": {
+								"name": "Gungan"
+							},
+							"homeworld": {
+								"name": "Naboo"
+							},
+							"starshipConnection": {
+								"starships": []
+							}
+						},
+						{
+							"name": "Watto",
+							"species": {
+								"name": "Toydarian"
+							},
+							"homeworld": {
+								"name": "Toydaria"
+							},
+							"starshipConnection": {
+								"starships": []
+							}
+						},
+						{
+							"name": "Shmi Skywalker",
+							"species": {
+								"name": "Human"
+							},
+							"homeworld": {
+								"name": "Tatooine"
+							},
+							"starshipConnection": {
+								"starships": []
+							}
+						},
+						{
+							"name": "Ayla Secura",
+							"species": {
+								"name": "Twi'lek"
+							},
+							"homeworld": {
+								"name": "Ryloth"
+							},
+							"starshipConnection": {
+								"starships": []
+							}
+						},
+						{
+							"name": "Mace Windu",
+							"species": {
+								"name": "Human"
+							},
+							"homeworld": {
+								"name": "Haruun Kal"
+							},
+							"starshipConnection": {
+								"starships": []
+							}
+						},
+						{
+							"name": "Ki-Adi-Mundi",
+							"species": {
+								"name": "Cerean"
+							},
+							"homeworld": {
+								"name": "Cerea"
+							},
+							"starshipConnection": {
+								"starships": []
+							}
+						},
+						{
+							"name": "Kit Fisto",
+							"species": {
+								"name": "Nautolan"
+							},
+							"homeworld": {
+								"name": "Glee Anselm"
+							},
+							"starshipConnection": {
+								"starships": []
+							}
+						},
+						{
+							"name": "Plo Koon",
+							"species": {
+								"name": "Kel Dor"
+							},
+							"homeworld": {
+								"name": "Dorin"
+							},
+							"starshipConnection": {
+								"starships": [
+									{
+										"name": "Jedi starfighter",
+										"crew": "1",
+										"passengers": "0"
+									}
+								]
+							}
+						},
+						{
+							"name": "Mas Amedda",
+							"species": {
+								"name": "Chagrian"
+							},
+							"homeworld": {
+								"name": "Champala"
+							},
+							"starshipConnection": {
+								"starships": []
+							}
+						},
+						{
+							"name": "Gregar Typho",
+							"species": {
+								"name": "Human"
+							},
+							"homeworld": {
+								"name": "Naboo"
+							},
+							"starshipConnection": {
+								"starships": [
+									{
+										"name": "Naboo fighter",
+										"crew": "1",
+										"passengers": "0"
+									}
+								]
+							}
+						},
+						{
+							"name": "Cordé",
+							"species": {
+								"name": "Human"
+							},
+							"homeworld": {
+								"name": "Naboo"
+							},
+							"starshipConnection": {
+								"starships": []
+							}
+						},
+						{
+							"name": "Cliegg Lars",
+							"species": {
+								"name": "Human"
+							},
+							"homeworld": {
+								"name": "Tatooine"
+							},
+							"starshipConnection": {
+								"starships": []
+							}
+						},
+						{
+							"name": "Poggle the Lesser",
+							"species": {
+								"name": "Geonosian"
+							},
+							"homeworld": {
+								"name": "Geonosis"
+							},
+							"starshipConnection": {
+								"starships": []
+							}
+						},
+						{
+							"name": "Luminara Unduli",
+							"species": {
+								"name": "Mirialan"
+							},
+							"homeworld": {
+								"name": "Mirial"
+							},
+							"starshipConnection": {
+								"starships": []
+							}
+						},
+						{
+							"name": "Barriss Offee",
+							"species": {
+								"name": "Mirialan"
+							},
+							"homeworld": {
+								"name": "Mirial"
+							},
+							"starshipConnection": {
+								"starships": []
+							}
+						},
+						{
+							"name": "Dormé",
+							"species": {
+								"name": "Human"
+							},
+							"homeworld": {
+								"name": "Naboo"
+							},
+							"starshipConnection": {
+								"starships": []
+							}
+						},
+						{
+							"name": "Dooku",
+							"species": {
+								"name": "Human"
+							},
+							"homeworld": {
+								"name": "Serenno"
+							},
+							"starshipConnection": {
+								"starships": []
+							}
+						},
+						{
+							"name": "Bail Prestor Organa",
+							"species": {
+								"name": "Human"
+							},
+							"homeworld": {
+								"name": "Alderaan"
+							},
+							"starshipConnection": {
+								"starships": []
+							}
+						},
+						{
+							"name": "Jango Fett",
+							"species": {
+								"name": "Human"
+							},
+							"homeworld": {
+								"name": "Concord Dawn"
+							},
+							"starshipConnection": {
+								"starships": []
+							}
+						},
+						{
+							"name": "Zam Wesell",
+							"species": {
+								"name": "Clawdite"
+							},
+							"homeworld": {
+								"name": "Zolan"
+							},
+							"starshipConnection": {
+								"starships": []
+							}
+						},
+						{
+							"name": "Dexter Jettster",
+							"species": {
+								"name": "Besalisk"
+							},
+							"homeworld": {
+								"name": "Ojom"
+							},
+							"starshipConnection": {
+								"starships": []
+							}
+						},
+						{
+							"name": "Lama Su",
+							"species": {
+								"name": "Kaminoan"
+							},
+							"homeworld": {
+								"name": "Kamino"
+							},
+							"starshipConnection": {
+								"starships": []
+							}
+						},
+						{
+							"name": "Taun We",
+							"species": {
+								"name": "Kaminoan"
+							},
+							"homeworld": {
+								"name": "Kamino"
+							},
+							"starshipConnection": {
+								"starships": []
+							}
+						},
+						{
+							"name": "Jocasta Nu",
+							"species": {
+								"name": "Human"
+							},
+							"homeworld": {
+								"name": "Coruscant"
+							},
+							"starshipConnection": {
+								"starships": []
+							}
+						},
+						{
+							"name": "R4-P17",
+							"species": null,
+							"homeworld": {
+								"name": "unknown"
+							},
+							"starshipConnection": {
+								"starships": []
+							}
+						},
+						{
+							"name": "Wat Tambor",
+							"species": {
+								"name": "Skakoan"
+							},
+							"homeworld": {
+								"name": "Skako"
+							},
+							"starshipConnection": {
+								"starships": []
+							}
+						},
+						{
+							"name": "San Hill",
+							"species": {
+								"name": "Muun"
+							},
+							"homeworld": {
+								"name": "Muunilinst"
+							},
+							"starshipConnection": {
+								"starships": []
+							}
+						},
+						{
+							"name": "Shaak Ti",
+							"species": {
+								"name": "Togruta"
+							},
+							"homeworld": {
+								"name": "Shili"
+							},
+							"starshipConnection": {
+								"starships": []
+							}
+						},
+						{
+							"name": "Sly Moore",
+							"species": null,
+							"homeworld": {
+								"name": "Umbara"
+							},
+							"starshipConnection": {
+								"starships": []
+							}
+						}
+					]
+				}
+			},
+			{
+				"title": "Revenge of the Sith",
+				"releaseDate": "2005",
+				"director": "George Lucas",
+				"producers": ["Rick McCallum"],
+				"openingCrawl": "War! The Republic is crumbling under attacks by the ruthless Sith Lord, Count Dooku. There are heroes on both sides. Evil is everywhere.  In a stunning move, the fiendish droid leader, General Grievous, has swept into the Republic capital and kidnapped Chancellor Palpatine, leader of the Galactic Senate.  As the Separatist Droid Army attempts to flee the besieged capital with their valuable hostage, two Jedi Knights lead a desperate mission to rescue the captive Chancellor....",
+				"characterConnection": {
+					"characters": [
+						{
+							"name": "Luke Skywalker",
+							"species": {
+								"name": "Human"
+							},
+							"homeworld": {
+								"name": "Tatooine"
+							},
+							"starshipConnection": {
+								"starships": [
+									{
+										"name": "X-wing",
+										"crew": "1",
+										"passengers": "0"
+									},
+									{
+										"name": "Imperial shuttle",
+										"crew": "6",
+										"passengers": "20"
+									}
+								]
+							}
+						},
+						{
+							"name": "C-3PO",
+							"species": {
+								"name": "Droid"
+							},
+							"homeworld": {
+								"name": "Tatooine"
+							},
+							"starshipConnection": {
+								"starships": []
+							}
+						},
+						{
+							"name": "R2-D2",
+							"species": {
+								"name": "Droid"
+							},
+							"homeworld": {
+								"name": "Naboo"
+							},
+							"starshipConnection": {
+								"starships": []
+							}
+						},
+						{
+							"name": "Darth Vader",
+							"species": {
+								"name": "Human"
+							},
+							"homeworld": {
+								"name": "Tatooine"
+							},
+							"starshipConnection": {
+								"starships": [
+									{
+										"name": "TIE Advanced x1",
+										"crew": "1",
+										"passengers": "0"
+									}
+								]
+							}
+						},
+						{
+							"name": "Leia Organa",
+							"species": {
+								"name": "Human"
+							},
+							"homeworld": {
+								"name": "Alderaan"
+							},
+							"starshipConnection": {
+								"starships": []
+							}
+						},
+						{
+							"name": "Owen Lars",
+							"species": {
+								"name": "Human"
+							},
+							"homeworld": {
+								"name": "Tatooine"
+							},
+							"starshipConnection": {
+								"starships": []
+							}
+						},
+						{
+							"name": "Beru Whitesun lars",
+							"species": {
+								"name": "Human"
+							},
+							"homeworld": {
+								"name": "Tatooine"
+							},
+							"starshipConnection": {
+								"starships": []
+							}
+						},
+						{
+							"name": "Obi-Wan Kenobi",
+							"species": {
+								"name": "Human"
+							},
+							"homeworld": {
+								"name": "Stewjon"
+							},
+							"starshipConnection": {
+								"starships": [
+									{
+										"name": "Jedi starfighter",
+										"crew": "1",
+										"passengers": "0"
+									},
+									{
+										"name": "Trade Federation cruiser",
+										"crew": "600",
+										"passengers": "48247"
+									},
+									{
+										"name": "Naboo star skiff",
+										"crew": "3",
+										"passengers": "3"
+									},
+									{
+										"name": "Jedi Interceptor",
+										"crew": "1",
+										"passengers": "0"
+									},
+									{
+										"name": "Belbullab-22 starfighter",
+										"crew": "1",
+										"passengers": "0"
+									}
+								]
+							}
+						},
+						{
+							"name": "Anakin Skywalker",
+							"species": {
+								"name": "Human"
+							},
+							"homeworld": {
+								"name": "Tatooine"
+							},
+							"starshipConnection": {
+								"starships": [
+									{
+										"name": "Naboo fighter",
+										"crew": "1",
+										"passengers": "0"
+									},
+									{
+										"name": "Trade Federation cruiser",
+										"crew": "600",
+										"passengers": "48247"
+									},
+									{
+										"name": "Jedi Interceptor",
+										"crew": "1",
+										"passengers": "0"
+									}
+								]
+							}
+						},
+						{
+							"name": "Wilhuff Tarkin",
+							"species": {
+								"name": "Human"
+							},
+							"homeworld": {
+								"name": "Eriadu"
+							},
+							"starshipConnection": {
+								"starships": []
+							}
+						},
+						{
+							"name": "Chewbacca",
+							"species": {
+								"name": "Wookiee"
+							},
+							"homeworld": {
+								"name": "Kashyyyk"
+							},
+							"starshipConnection": {
+								"starships": [
+									{
+										"name": "Millennium Falcon",
+										"crew": "4",
+										"passengers": "6"
+									},
+									{
+										"name": "Imperial shuttle",
+										"crew": "6",
+										"passengers": "20"
+									}
+								]
+							}
+						},
+						{
+							"name": "Yoda",
+							"species": {
+								"name": "Yoda's species"
+							},
+							"homeworld": {
+								"name": "unknown"
+							},
+							"starshipConnection": {
+								"starships": []
+							}
+						},
+						{
+							"name": "Palpatine",
+							"species": {
+								"name": "Human"
+							},
+							"homeworld": {
+								"name": "Naboo"
+							},
+							"starshipConnection": {
+								"starships": []
+							}
+						},
+						{
+							"name": "Nute Gunray",
+							"species": {
+								"name": "Neimodian"
+							},
+							"homeworld": {
+								"name": "Cato Neimoidia"
+							},
+							"starshipConnection": {
+								"starships": []
+							}
+						},
+						{
+							"name": "Padmé Amidala",
+							"species": {
+								"name": "Human"
+							},
+							"homeworld": {
+								"name": "Naboo"
+							},
+							"starshipConnection": {
+								"starships": [
+									{
+										"name": "Naboo fighter",
+										"crew": "1",
+										"passengers": "0"
+									},
+									{
+										"name": "H-type Nubian yacht",
+										"crew": "4",
+										"passengers": "unknown"
+									},
+									{
+										"name": "Naboo star skiff",
+										"crew": "3",
+										"passengers": "3"
+									}
+								]
+							}
+						},
+						{
+							"name": "Ayla Secura",
+							"species": {
+								"name": "Twi'lek"
+							},
+							"homeworld": {
+								"name": "Ryloth"
+							},
+							"starshipConnection": {
+								"starships": []
+							}
+						},
+						{
+							"name": "Mace Windu",
+							"species": {
+								"name": "Human"
+							},
+							"homeworld": {
+								"name": "Haruun Kal"
+							},
+							"starshipConnection": {
+								"starships": []
+							}
+						},
+						{
+							"name": "Ki-Adi-Mundi",
+							"species": {
+								"name": "Cerean"
+							},
+							"homeworld": {
+								"name": "Cerea"
+							},
+							"starshipConnection": {
+								"starships": []
+							}
+						},
+						{
+							"name": "Kit Fisto",
+							"species": {
+								"name": "Nautolan"
+							},
+							"homeworld": {
+								"name": "Glee Anselm"
+							},
+							"starshipConnection": {
+								"starships": []
+							}
+						},
+						{
+							"name": "Eeth Koth",
+							"species": {
+								"name": "Zabrak"
+							},
+							"homeworld": {
+								"name": "Iridonia"
+							},
+							"starshipConnection": {
+								"starships": []
+							}
+						},
+						{
+							"name": "Adi Gallia",
+							"species": {
+								"name": "Tholothian"
+							},
+							"homeworld": {
+								"name": "Coruscant"
+							},
+							"starshipConnection": {
+								"starships": []
+							}
+						},
+						{
+							"name": "Saesee Tiin",
+							"species": {
+								"name": "Iktotchi"
+							},
+							"homeworld": {
+								"name": "Iktotch"
+							},
+							"starshipConnection": {
+								"starships": []
+							}
+						},
+						{
+							"name": "Plo Koon",
+							"species": {
+								"name": "Kel Dor"
+							},
+							"homeworld": {
+								"name": "Dorin"
+							},
+							"starshipConnection": {
+								"starships": [
+									{
+										"name": "Jedi starfighter",
+										"crew": "1",
+										"passengers": "0"
+									}
+								]
+							}
+						},
+						{
+							"name": "Poggle the Lesser",
+							"species": {
+								"name": "Geonosian"
+							},
+							"homeworld": {
+								"name": "Geonosis"
+							},
+							"starshipConnection": {
+								"starships": []
+							}
+						},
+						{
+							"name": "Luminara Unduli",
+							"species": {
+								"name": "Mirialan"
+							},
+							"homeworld": {
+								"name": "Mirial"
+							},
+							"starshipConnection": {
+								"starships": []
+							}
+						},
+						{
+							"name": "Dooku",
+							"species": {
+								"name": "Human"
+							},
+							"homeworld": {
+								"name": "Serenno"
+							},
+							"starshipConnection": {
+								"starships": []
+							}
+						},
+						{
+							"name": "Bail Prestor Organa",
+							"species": {
+								"name": "Human"
+							},
+							"homeworld": {
+								"name": "Alderaan"
+							},
+							"starshipConnection": {
+								"starships": []
+							}
+						},
+						{
+							"name": "R4-P17",
+							"species": null,
+							"homeworld": {
+								"name": "unknown"
+							},
+							"starshipConnection": {
+								"starships": []
+							}
+						},
+						{
+							"name": "Shaak Ti",
+							"species": {
+								"name": "Togruta"
+							},
+							"homeworld": {
+								"name": "Shili"
+							},
+							"starshipConnection": {
+								"starships": []
+							}
+						},
+						{
+							"name": "Grievous",
+							"species": {
+								"name": "Kaleesh"
+							},
+							"homeworld": {
+								"name": "Kalee"
+							},
+							"starshipConnection": {
+								"starships": [
+									{
+										"name": "Belbullab-22 starfighter",
+										"crew": "1",
+										"passengers": "0"
+									}
+								]
+							}
+						},
+						{
+							"name": "Tarfful",
+							"species": {
+								"name": "Wookiee"
+							},
+							"homeworld": {
+								"name": "Kashyyyk"
+							},
+							"starshipConnection": {
+								"starships": []
+							}
+						},
+						{
+							"name": "Raymus Antilles",
+							"species": {
+								"name": "Human"
+							},
+							"homeworld": {
+								"name": "Alderaan"
+							},
+							"starshipConnection": {
+								"starships": []
+							}
+						},
+						{
+							"name": "Sly Moore",
+							"species": null,
+							"homeworld": {
+								"name": "Umbara"
+							},
+							"starshipConnection": {
+								"starships": []
+							}
+						},
+						{
+							"name": "Tion Medon",
+							"species": {
+								"name": "Pau'an"
+							},
+							"homeworld": {
+								"name": "Utapau"
+							},
+							"starshipConnection": {
+								"starships": []
+							}
+						}
+					]
+				}
+			},
+			{
+				"title": "The Force Awakens",
+				"releaseDate": "2015",
+				"director": "J. J. Abrams",
+				"producers": ["Kathleen Kennedy", "J. J. Abrams", "Bryan Burk"],
+				"openingCrawl": "Luke Skywalker has vanished. In his absence, the sinister FIRST ORDER has risen from the ashes of the Empire and will not rest until Skywalker, the last Jedi, has been destroyed.   With the support of the REPUBLIC, General Leia Organa leads a brave RESISTANCE. She is desperate to find her brother Luke and gain his help in restoring peace and justice to the galaxy.   Leia has sent her most daring pilot on a secret mission to Jakku, where an old ally has discovered a clue to Luke's whereabouts....",
+				"characterConnection": {
+					"characters": [
+						{
+							"name": "Luke Skywalker",
+							"species": {
+								"name": "Human"
+							},
+							"homeworld": {
+								"name": "Tatooine"
+							},
+							"starshipConnection": {
+								"starships": [
+									{
+										"name": "X-wing",
+										"crew": "1",
+										"passengers": "0"
+									},
+									{
+										"name": "Imperial shuttle",
+										"crew": "6",
+										"passengers": "20"
+									}
+								]
+							}
+						},
+						{
+							"name": "R2-D2",
+							"species": {
+								"name": "Droid"
+							},
+							"homeworld": {
+								"name": "Naboo"
+							},
+							"starshipConnection": {
+								"starships": []
+							}
+						},
+						{
+							"name": "Leia Organa",
+							"species": {
+								"name": "Human"
+							},
+							"homeworld": {
+								"name": "Alderaan"
+							},
+							"starshipConnection": {
+								"starships": []
+							}
+						},
+						{
+							"name": "Chewbacca",
+							"species": {
+								"name": "Wookiee"
+							},
+							"homeworld": {
+								"name": "Kashyyyk"
+							},
+							"starshipConnection": {
+								"starships": [
+									{
+										"name": "Millennium Falcon",
+										"crew": "4",
+										"passengers": "6"
+									},
+									{
+										"name": "Imperial shuttle",
+										"crew": "6",
+										"passengers": "20"
+									}
+								]
+							}
+						},
+						{
+							"name": "Han Solo",
+							"species": {
+								"name": "Human"
+							},
+							"homeworld": {
+								"name": "Corellia"
+							},
+							"starshipConnection": {
+								"starships": [
+									{
+										"name": "Millennium Falcon",
+										"crew": "4",
+										"passengers": "6"
+									},
+									{
+										"name": "Imperial shuttle",
+										"crew": "6",
+										"passengers": "20"
+									}
+								]
+							}
+						},
+						{
+							"name": "Ackbar",
+							"species": {
+								"name": "Mon Calamari"
+							},
+							"homeworld": {
+								"name": "Mon Cala"
+							},
+							"starshipConnection": {
+								"starships": []
+							}
+						},
+						{
+							"name": "Finn",
+							"species": {
+								"name": "Human"
+							},
+							"homeworld": {
+								"name": "unknown"
+							},
+							"starshipConnection": {
+								"starships": []
+							}
+						},
+						{
+							"name": "Rey",
+							"species": {
+								"name": "Human"
+							},
+							"homeworld": {
+								"name": "unknown"
+							},
+							"starshipConnection": {
+								"starships": []
+							}
+						},
+						{
+							"name": "Poe Dameron",
+							"species": {
+								"name": "Human"
+							},
+							"homeworld": {
+								"name": "unknown"
+							},
+							"starshipConnection": {
+								"starships": [
+									{
+										"name": "T-70 X-wing fighter",
+										"crew": "1",
+										"passengers": "unknown"
+									}
+								]
+							}
+						},
+						{
+							"name": "BB8",
+							"species": {
+								"name": "Droid"
+							},
+							"homeworld": {
+								"name": "unknown"
+							},
+							"starshipConnection": {
+								"starships": []
+							}
+						},
+						{
+							"name": "Captain Phasma",
+							"species": null,
+							"homeworld": {
+								"name": "unknown"
+							},
+							"starshipConnection": {
+								"starships": []
+							}
+						}
+					]
+				}
+			}
+		]
+	}
+}

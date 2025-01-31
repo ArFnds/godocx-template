@@ -1,52 +1,34 @@
 package main
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
 	"os"
 
+	_ "embed"
+
 	. "github.com/ArFnds/godocx-template/pkg/report"
 	"github.com/skip2/go-qrcode"
 )
 
+//go:embed dataset.json
+var datasetFile []byte
+
 func main() {
 	//slog.SetLogLoggerLevel(slog.LevelDebug)
+	buffer := bytes.NewBuffer(datasetFile)
+	jsonDecoder := json.NewDecoder(buffer)
+	jsonData := ReportData{}
+	jsonDecoder.Decode(&jsonData)
 	outBytes, err := CreateReport(os.Args[1],
-		&ReportData{
-			"allFilms": map[string]any{
-				"films": []map[string]any{
-
-					{
-						"title":       "A New Hope",
-						"releaseDate": "1977",
-					},
-					{
-						"title":       "The Empire Strikes Back",
-						"releaseDate": "1980",
-					},
-					{
-						"title":       "Return of the Jedi",
-						"releaseDate": "1983",
-					},
-					{
-						"title":       "The Phantom Menace",
-						"releaseDate": "1999",
-					},
-					{
-						"title":       "Attack of the Clones",
-						"releaseDate": "2002",
-					},
-					{
-						"title":       "Revenge of the Sith",
-						"releaseDate": "2005",
-					},
-				},
-			},
-		},
+		&jsonData,
 		CreateReportOptions{
 			LiteralXmlDelimiter: "||",
 			// Otherwise unused but mandatory options
+			FixSmartQuotes:    true,
 			ProcessLineBreaks: true,
 			Functions: Functions{
 				"tile": func(args ...any) VarValue {
