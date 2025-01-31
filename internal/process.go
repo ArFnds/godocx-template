@@ -7,6 +7,7 @@ import (
 	"reflect"
 	"regexp"
 	"slices"
+	"strconv"
 	"strings"
 )
 
@@ -481,8 +482,19 @@ func getFromVars(ctx *Context, rest string) (varValue VarValue, exists bool) {
 }
 
 func getValue(key string, ctx *Context, data *ReportData) (VarValue, bool) {
+	key = strings.TrimSpace(key)
 	if key[0] == '$' {
 		return getFromVars(ctx, key)
+	}
+	lastI := len(key) - 1
+	if (key[0] == '\'' && key[lastI] == '\'') || (key[0] == '`' && key[lastI] == '`') {
+		return key[1:lastI], true
+	}
+	if number, err := strconv.ParseInt(key, 10, 64); err == nil {
+		return number, true
+	}
+	if number, err := strconv.ParseFloat(key, 64); err == nil {
+		return number, true
 	}
 	return data.GetValue(key)
 }
@@ -512,7 +524,6 @@ func runFunction(funcName string, args []string, ctx *Context, data *ReportData)
 
 func runAndGetValue(text string, ctx *Context, data *ReportData) (VarValue, error) {
 	var value VarValue
-
 	if args, isFunction := parseFunctionCall(text); isFunction {
 		funcName := args[0]
 		args = args[1:]
