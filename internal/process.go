@@ -559,6 +559,14 @@ func runAndGetValue(text string, ctx *Context, data *ReportData) (VarValue, erro
 }
 
 func processHtml(html string, ctx *Context) {
+	interpolationRegex := regexp.MustCompile(`\$\{(.*?)\}`)
+
+	html = interpolationRegex.ReplaceAllStringFunc(html, func(match string) string {
+		key := match[2 : len(match)-1]
+		value, _ := runAndGetValue(key, ctx, nil)
+		return fmt.Sprint(value)
+	})
+
 	ctx.htmlId += 1
 	id := fmt.Sprint(ctx.htmlId)
 	relId := "html" + id
