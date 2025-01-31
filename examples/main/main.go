@@ -11,9 +11,39 @@ import (
 )
 
 func main() {
-
+	//slog.SetLogLoggerLevel(slog.LevelDebug)
 	outBytes, err := CreateReport(os.Args[1],
-		&ReportData{},
+		&ReportData{
+			"allFilms": map[string]any{
+				"films": []map[string]any{
+
+					{
+						"title":       "A New Hope",
+						"releaseDate": "1977",
+					},
+					{
+						"title":       "The Empire Strikes Back",
+						"releaseDate": "1980",
+					},
+					{
+						"title":       "Return of the Jedi",
+						"releaseDate": "1983",
+					},
+					{
+						"title":       "The Phantom Menace",
+						"releaseDate": "1999",
+					},
+					{
+						"title":       "Attack of the Clones",
+						"releaseDate": "2002",
+					},
+					{
+						"title":       "Revenge of the Sith",
+						"releaseDate": "2005",
+					},
+				},
+			},
+		},
 		CreateReportOptions{
 			LiteralXmlDelimiter: "||",
 			// Otherwise unused but mandatory options
