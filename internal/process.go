@@ -321,8 +321,28 @@ func processImage(ctx *Context, imagePars *ImagePars) error {
 		rot = fmt.Sprintf("-%d", imagePars.Rotation*60e3)
 	}
 
-	// TODO gestion des SVG
-	//if (ctx.images[imgRelId].extension === ".svg") {
+	if ctx.images[imgRelId].Extension == ".svg" {
+		// Default to an empty thumbnail, as it is not critical and just part of the docx standard's scaffolding.
+		// Without a thumbnail, the svg won't render (even in newer versions of Word that don't need the thumbnail).
+		thumbnail := imagePars.Thumbnail
+		if thumbnail == nil {
+			thumbnail = &Thumbnail{
+				Image: Image{Extension: ".png", Data: []byte{110, 111, 74, 68, 69, 110, 67, 10}},
+			}
+		}
+		thumbRelId := imageToContext(ctx, &thumbnail.Image)
+		extNodes = append(extNodes, node("a:ext", map[string]string{
+			"uri": "{96DAC541-7B7A-43D3-8B79-37D633B846F1}",
+		}, []Node{
+			node("asvg:svgBlip", map[string]string{
+				"xmlns:asvg": "http://schemas.microsoft.com/office/drawing/2016/SVG/main",
+				"r:embed":    imgRelId,
+			}, nil),
+		}))
+		// For SVG the thumb is placed where the image normally goes.
+		imgRelId = thumbRelId
+	}
+
 	rotAttrs := map[string]string{}
 	if rot != "" {
 		rotAttrs["rot"] = rot

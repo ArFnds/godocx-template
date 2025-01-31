@@ -183,19 +183,19 @@ var ImageExtensions []string = []string{
 }
 
 type Thumbnail struct {
+	Image
 	Width  int
 	Height int
-	Data   []byte // ou string, selon l'utilisation
 }
 type ImagePars struct {
-	Width     float32    `json:"width"`
-	Height    float32    `json:"height"`
-	Data      []byte     `json:"data"`                // ou string, selon l'utilisation
-	Thumbnail *Thumbnail `json:"thumbnail,omitempty"` // Pointeur pour gérer l'optionalité
-	Extension string     `json:"extension"`           // ".png", ".gif", ".jpg", ".jpeg", ".svg"
-	Alt       string     `json:"alt,omitempty"`       // Champ optionnel
-	Rotation  int        `json:"rotation,omitempty"`  // Champ optionnel
-	Caption   string     `json:"caption,omitempty"`   // Champ optionnel
+	Extension string // [".png", ".gif", ".jpg", ".jpeg", ".svg"]
+	Data      []byte
+	Width     float32
+	Height    float32
+	Thumbnail *Thumbnail // optional
+	Alt       string     // optional
+	Rotation  int        // optional
+	Caption   string     // optional
 }
 
 type LoopStatus struct {
