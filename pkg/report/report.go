@@ -45,6 +45,9 @@ func CreateReport(templatePath string, data *ReportData, options CreateReportOpt
 			Close: DEFAULT_CMD_DELIMITER,
 		}
 	}
+	if options.LiteralXmlDelimiter == "" {
+		options.LiteralXmlDelimiter = internal.DEFAULT_LITERAL_XML_DELIMITER
+	}
 
 	preppedTemplate, err := internal.PreprocessTemplate(parseResult.Root, *options.CmdDelimiter)
 	if err != nil {
