@@ -1,0 +1,9 @@
+.vscode/launch.json
+
+demo/
+docx-templates/
+outdoc/
+godocx-template
+
+outdoc.docx
+document.xml
