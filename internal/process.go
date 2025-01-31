@@ -52,7 +52,6 @@ var (
 	IncompleteConditionalStatementError = errors.New("IncompleteConditionalStatementError")
 	IgnoreError                         = errors.New("ignore")
 	BUILT_IN_COMMANDS                   = []string{
-		"QUERY",
 		"CMD_NODE",
 		"ALIAS",
 		"FOR",
@@ -60,7 +59,6 @@ var (
 		"IF",
 		"END-IF",
 		"INS",
-		"EXEC",
 		"IMAGE",
 		"LINK",
 		"HTML",
@@ -597,7 +595,7 @@ func processCmd(data *ReportData, node Node, ctx *Context) (string, error) {
 		return "", nil
 	}
 
-	if cmdName == "QUERY" || cmdName == "CMD_NODE" || rest == "CMD_NODE" {
+	if cmdName == "CMD_NODE" || rest == "CMD_NODE" {
 		// logger.debug(`Ignoring ${cmdName} command`);
 		return "", IgnoreError
 		// ALIAS name ANYTHING ELSE THAT MIGHT BE PART OF THE COMMAND...
@@ -650,7 +648,6 @@ func processCmd(data *ReportData, node Node, ctx *Context) (string, error) {
 
 			return value, nil
 		}
-	} else if cmdName == "EXEC" {
 		// IMAGE <code>
 	} else if cmdName == "IMAGE" {
 		if !isLoopExploring(ctx) {
