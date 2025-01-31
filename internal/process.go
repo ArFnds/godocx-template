@@ -20,19 +20,8 @@ type ReportOutput struct {
 
 type ReportData map[string]any
 
-func (rd ReportData) GetValue(key string) (value VarValue, ok bool) {
-
-	splitted := strings.Split(key, ".")
-	if len(splitted) > 1 {
-		value, ok = rd[splitted[0]]
-		if ok {
-			value = value.(map[string]any)[splitted[1]]
-		}
-		return
-	}
-
-	value, ok = rd[key]
-	return
+func (rd ReportData) GetValue(key string) (VarValue, bool) {
+	return getValueFrom(key, rd)
 }
 
 func (rd ReportData) GetArray(key string) ([]any, bool) {
@@ -87,13 +76,19 @@ func notBuiltIns(cmd string) bool {
 	return !slices.ContainsFunc(BUILT_IN_COMMANDS, func(b string) bool { return strings.HasPrefix(upperCmd, b+" ") })
 }
 
-func getCommand(command string, shorthands map[string]string, fixSmartQuotes bool) string {
+func getCommand(command string, shorthands map[string]string, fixSmartQuotes bool) (string, error) {
 
 	cmd := strings.TrimSpace(command)
 	runes := []rune(cmd)
 
 	if runes[0] == '*' {
-		// TODO handle shorthands
+		aliasName := string(runes[1:])
+		if foundCmd, ok := shorthands[aliasName]; ok {
+			cmd = foundCmd
+			slog.Debug("Alias for command", "command", cmd)
+		} else {
+			return "", errors.New("Unknown alias: " + aliasName)
+		}
 	} else if runes[0] == '=' {
 		cmd = "INS " + string(runes[1:])
 	} else if runes[0] == '!' {
@@ -114,7 +109,7 @@ func getCommand(command string, shorthands map[string]string, fixSmartQuotes boo
 		cmd = replacer.Replace(cmd)
 	}
 
-	return strings.TrimSpace(cmd)
+	return strings.TrimSpace(cmd), nil
 }
 
 func splitCommand(cmd string) (cmdName string, rest string) {
@@ -465,35 +460,42 @@ var functionCallRegexp = regexp.MustCompile(`(\w+)\(([^)]*)\)`)
 func parseFunctionCall(rest string) ([]string, bool) {
 	matches := functionCallRegexp.FindStringSubmatch(rest)
 	if len(matches) > 0 {
-		return append([]string{matches[1]}, strings.Split(matches[2], ",")...), true
+		// parse args char by char to handle string containing commas
+		args := []string{}
+		current := strings.Builder{}
+		isInString := false
+		for _, char := range []rune(matches[2]) {
+			if char == '\'' {
+				current.WriteRune(char)
+				isInString = !isInString
+			} else if char == ',' && !isInString {
+				args = append(args, strings.TrimSpace(current.String()))
+				current.Reset()
+			} else {
+				current.WriteRune(char)
+			}
+		}
+		args = append(args, strings.TrimSpace(current.String()))
+
+		return append([]string{matches[1]}, args...), true
 	}
 	return nil, false
 }
 
-func getFromVars(ctx *Context, rest string) (varValue VarValue, exists bool) {
-
-	if rest[0] != '$' {
-		return nil, false
-	}
-
-	splited := strings.Split(rest, ".")
-
-	varValue, exists = ctx.vars[splited[0]]
-	if exists && len(splited) == 2 {
-		reflectValue := reflect.ValueOf(varValue)
-		if reflectValue.Kind() == reflect.Map {
-			reflectKey := reflect.ValueOf(splited[1])
-			if fieldValue := reflectValue.MapIndex(reflectKey); fieldValue.IsValid() {
-				varValue = fieldValue.Interface()
-			} else {
-				exists = false
-			}
-		} else {
-			exists = false
-
+func recVarValue(key string, inVarValue VarValue) (varValue VarValue, exists bool) {
+	reflectValue := reflect.ValueOf(inVarValue)
+	if reflectValue.Kind() == reflect.Map {
+		reflectKey := reflect.ValueOf(key)
+		if fieldValue := reflectValue.MapIndex(reflectKey); fieldValue.IsValid() {
+			varValue = fieldValue.Interface()
+			exists = true
 		}
 	}
 	return
+}
+
+func getFromVars(ctx *Context, key string) (varValue VarValue, exists bool) {
+	return getValueFrom(key, ctx.vars)
 }
 
 func getValue(key string, ctx *Context, data *ReportData) (VarValue, bool) {
@@ -502,7 +504,7 @@ func getValue(key string, ctx *Context, data *ReportData) (VarValue, bool) {
 		return getFromVars(ctx, key)
 	}
 	lastI := len(key) - 1
-	if (key[0] == '\'' && key[lastI] == '\'') || (key[0] == '`' && key[lastI] == '`') {
+	if lastI > 0 && (key[0] == '\'' && key[lastI] == '\'') || (key[0] == '`' && key[lastI] == '`') {
 		return key[1:lastI], true
 	}
 	if number, err := strconv.ParseInt(key, 10, 64); err == nil {
@@ -576,7 +578,10 @@ func processHtml(html string, ctx *Context) {
 }
 
 func processCmd(data *ReportData, node Node, ctx *Context) (string, error) {
-	cmd := getCommand(ctx.cmd, ctx.shorthands, ctx.options.FixSmartQuotes)
+	cmd, err := getCommand(ctx.cmd, ctx.shorthands, ctx.options.FixSmartQuotes)
+	if err != nil {
+		return "", err
+	}
 	ctx.cmd = "" // flush the context
 
 	cmdName, rest := splitCommand(cmd)
@@ -597,7 +602,12 @@ func processCmd(data *ReportData, node Node, ctx *Context) (string, error) {
 		return "", IgnoreError
 		// ALIAS name ANYTHING ELSE THAT MIGHT BE PART OF THE COMMAND...
 	} else if cmdName == "ALIAS" {
-
+		aliasRegexp := regexp.MustCompile(`^(\S+)\s*(.*)`)
+		aliasMatch := aliasRegexp.FindStringSubmatch(rest)
+		if len(aliasMatch) == 3 {
+			ctx.shorthands[aliasMatch[1]] = aliasMatch[2]
+			slog.Debug("Defined alias", "alias", aliasMatch[1], "for", aliasMatch[2])
+		}
 		// FOR <varName> IN <expression>
 		// IF <expression>
 	} else if cmdName == "FOR" || cmdName == "IF" {
@@ -1080,7 +1090,8 @@ func updateID(newNode *NonTextNode, ctx *Context) {
 
 func NewContext(options CreateReportOptions, imageAndShapeIdIncrement int) Context {
 	builtin := map[string]Function{
-		"len": length,
+		"len":  length,
+		"join": join,
 	}
 	for k, v := range options.Functions {
 		builtin[k] = v

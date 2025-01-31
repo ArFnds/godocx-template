@@ -8,6 +8,43 @@ import (
 	"strings"
 )
 
+func getValueFrom(key string, source map[string]any) (VarValue, bool) {
+
+	splitted := strings.Split(key, ".")
+	idx := 0
+	var loopMap map[string]any = source
+	for idx < len(splitted) {
+		optional := false
+		key := splitted[idx]
+		if strings.HasSuffix(key, "?") {
+			optional = true
+			key = strings.TrimSuffix(key, "?")
+		}
+		value, ok := loopMap[key]
+
+		// Last iteration
+		if ok && idx == len(splitted)-1 {
+			return value, true
+			// Ok, but not last iteration
+		} else if ok {
+			loopMap, ok = value.(map[string]any)
+			if !ok {
+				return "", optional
+			}
+			// Not ok but optional
+		} else if optional {
+			return "", true
+			// Not ok at all
+		} else {
+			return "", false
+		}
+
+		idx++
+	}
+	return "", false
+
+}
+
 func AddChild(parent Node, child Node) Node {
 	parent.AddChild(child)
 	child.SetParent(parent)

@@ -166,7 +166,7 @@ type CreateReportOptions struct {
 	Functions                  Functions
 }
 
-type VarValue any
+type VarValue = any
 
 type Image struct {
 	Extension string // [".png", ".gif", ".jpg", ".jpeg", ".svg"]
