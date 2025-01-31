@@ -111,6 +111,7 @@ Sanitaires
 			Data:      plancadastal,
 			Extension: ".png",
 		},
+		"imgGoogleMapZoomX": nil,
 
 		// conclusions
 		"longConclusion":     "Dans la mesure où les méthodes retenues ont un écart significatif de 17,8% mais que l’indexation des loyers augmentent rapidement (5 à 6%/an) la méthode par capitalisation du revenu ajustée lors prochaines indexation (1er T2025) fera progresser la valeur aux alentours des 5.300.000,00€, nous pouvons déterminer avec certitude que la valeur de l’immeuble objet de la mission est comprise entre 5.300.000,00€ et 5.800.000,00€.",
@@ -125,7 +126,7 @@ Sanitaires
 		// Otherwise unused but mandatory options
 		ProcessLineBreaks: true,
 		Functions: Functions{
-			"markdownToHtml": func(args ...any) string {
+			"markdownToHtml": func(args ...any) VarValue {
 				if text, ok := args[0].(string); ok {
 					extensions := parser.CommonExtensions | parser.AutoHeadingIDs | parser.NoEmptyLineBeforeBlock
 					p := parser.NewWithExtensions(extensions)
@@ -140,19 +141,19 @@ Sanitaires
 				}
 				return ""
 			},
-			"formatNumberToPourcent": func(args ...any) string {
+			"formatNumberToPourcent": func(args ...any) VarValue {
 				if value, ok := args[0].(int); ok {
 					return fmt.Sprintf("%d %%", value)
 				}
 				return ""
 			},
-			"formatToSquareMeters": func(args ...any) string {
+			"formatToSquareMeters": func(args ...any) VarValue {
 				if surface, ok := args[0].(int); ok {
 					return fmt.Sprintf("%d m2", surface)
 				}
 				return ""
 			},
-			"formatNumberToCurrency": func(args ...any) string {
+			"formatNumberToCurrency": func(args ...any) VarValue {
 				if value, ok := args[0].(float64); ok {
 					return fmt.Sprintf("%.2f €", value)
 				}
@@ -161,7 +162,7 @@ Sanitaires
 				}
 				return ""
 			},
-			"getLabelPriceOfOneArea": func(args ...any) string {
+			"getLabelPriceOfOneArea": func(args ...any) VarValue {
 				var area int
 				var totalPrice int
 				var ok bool

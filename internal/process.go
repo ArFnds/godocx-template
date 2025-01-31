@@ -249,6 +249,7 @@ func processEndForIf(node Node, ctx *Context, cmd string, cmdName string, cmdRes
 	if nextItem != nil {
 		// next iteration
 		ctx.vars["$"+varName] = nextItem
+		ctx.vars["$idx"] = nextIdx
 		ctx.fJump = true
 		curLoop.idx = nextIdx
 	} else {
@@ -486,7 +487,7 @@ func getValue(key string, ctx *Context, data *ReportData) (VarValue, bool) {
 	return data.GetValue(key)
 }
 
-func runFunction(funcName string, args []string, ctx *Context, data *ReportData) (string, error) {
+func runFunction(funcName string, args []string, ctx *Context, data *ReportData) (VarValue, error) {
 	if ctx.options.Functions != nil {
 		if function, ok := ctx.options.Functions[funcName]; ok {
 			argValues := make([]any, len(args))
@@ -509,8 +510,8 @@ func runFunction(funcName string, args []string, ctx *Context, data *ReportData)
 	}
 }
 
-func runAndGetValue(text string, ctx *Context, data *ReportData) (string, error) {
-	var value string
+func runAndGetValue(text string, ctx *Context, data *ReportData) (VarValue, error) {
+	var value VarValue
 
 	if args, isFunction := parseFunctionCall(text); isFunction {
 		funcName := args[0]
@@ -522,7 +523,7 @@ func runAndGetValue(text string, ctx *Context, data *ReportData) (string, error)
 			return "", err
 		}
 	} else if varValue, ok := getValue(text, ctx, data); ok {
-		value = fmt.Sprintf("%v", varValue)
+		return varValue, nil
 	} else if ctx.options.ErrorHandler != nil {
 		value = ctx.options.ErrorHandler(&KeyNotFoundError{Key: text}, text)
 	} else {
@@ -583,10 +584,11 @@ func processCmd(data *ReportData, node Node, ctx *Context) (string, error) {
 	} else if cmdName == "INS" {
 		if !isLoopExploring(ctx) {
 
-			value, err := runAndGetValue(rest, ctx, data)
+			varValue, err := runAndGetValue(rest, ctx, data)
 			if err != nil {
 				return "", err
 			}
+			value := fmt.Sprintf("%v", varValue)
 
 			if ctx.options.ProcessLineBreaks {
 				literalXmlDelimiter := ctx.options.LiteralXmlDelimiter
@@ -608,22 +610,28 @@ func processCmd(data *ReportData, node Node, ctx *Context) (string, error) {
 		// IMAGE <code>
 	} else if cmdName == "IMAGE" {
 		if !isLoopExploring(ctx) {
-			imgPars, ok := data.GetImage(rest)
-			if ok {
+			varValue, err := runAndGetValue(rest, ctx, data)
+			if err != nil {
+				return "", err
+			}
+
+			if imgPars, ok := varValue.(*ImagePars); ok {
 				err := processImage(ctx, imgPars)
 				if err != nil {
 					return "", fmt.Errorf("ImageError: %w", err)
 				}
+			} else {
+				return "", errors.New("Not an image as result of " + rest)
 			}
 		}
 	} else if cmdName == "LINK" {
 	} else if cmdName == "HTML" {
 		if !isLoopExploring(ctx) {
-			value, err := runAndGetValue(rest, ctx, data)
+			varValue, err := runAndGetValue(rest, ctx, data)
 			if err != nil {
 				return "", err
 			}
-			processHtml(value, ctx)
+			processHtml(fmt.Sprintf("%v", varValue), ctx)
 			return "", nil
 		}
 

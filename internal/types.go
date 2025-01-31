@@ -147,7 +147,7 @@ type Delimiters struct {
 	Close string
 }
 
-type Function func(args ...any) string
+type Function func(args ...any) VarValue
 type Functions map[string]Function
 
 type CreateReportOptions struct {
