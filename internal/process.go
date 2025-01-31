@@ -1079,6 +1079,13 @@ func updateID(newNode *NonTextNode, ctx *Context) {
 }
 
 func NewContext(options CreateReportOptions, imageAndShapeIdIncrement int) Context {
+	builtin := map[string]Function{
+		"len": length,
+	}
+	for k, v := range options.Functions {
+		builtin[k] = v
+	}
+	options.Functions = builtin
 
 	return Context{
 		gCntIf:     0,

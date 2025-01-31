@@ -19,6 +19,7 @@ type ParseTemplateResult struct {
 	MainDocument string
 	Zip          *ZipArchive
 	ContentTypes *NonTextNode
+	Extras       map[string]Node // [path]Node
 }
 
 func ProcessImages(images Images, documentComponent string, zip *ZipArchive) error {
@@ -147,11 +148,40 @@ func ParseTemplate(zip *ZipArchive) (*ParseTemplateResult, error) {
 		return nil, err
 	}
 
+	extras := make(map[string]Node)
+	i := 1
+	for i < 1000 {
+		extraPath := fmt.Sprintf("%s/header%d.xml", TEMPLATE_PATH, i)
+		extra, err := zip.GetFile(extraPath)
+		if err != nil {
+			break
+		}
+		extras[extraPath], err = ParseXml(string(extra))
+		if err != nil {
+			return nil, fmt.Errorf("ParseXml failed for header%d.xml: %w", i, err)
+		}
+		i++
+	}
+	i = 1
+	for i < 1000 {
+		extraPath := fmt.Sprintf("%s/footer%d.xml", TEMPLATE_PATH, i)
+		extra, err := zip.GetFile(extraPath)
+		if err != nil {
+			break
+		}
+		extras[extraPath], err = ParseXml(string(extra))
+		if err != nil {
+			return nil, fmt.Errorf("ParseXml failed for footer%d.xml: %w", i, err)
+		}
+		i++
+	}
+
 	return &ParseTemplateResult{
 		Root:         root,
 		MainDocument: mainDocument,
 		Zip:          zip,
 		ContentTypes: contentTypes,
+		Extras:       extras,
 	}, nil
 }
 

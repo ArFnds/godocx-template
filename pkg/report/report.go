@@ -49,6 +49,10 @@ func CreateReport(templatePath string, data *ReportData, options CreateReportOpt
 		options.LiteralXmlDelimiter = internal.DEFAULT_LITERAL_XML_DELIMITER
 	}
 
+	xmlOptions := internal.XmlOptions{
+		LiteralXmlDelimiter: options.LiteralXmlDelimiter,
+	}
+
 	preppedTemplate, err := internal.PreprocessTemplate(parseResult.Root, *options.CmdDelimiter)
 	if err != nil {
 		return nil, fmt.Errorf("PreprocessTemplate failed: %w", err)
@@ -60,9 +64,7 @@ func CreateReport(templatePath string, data *ReportData, options CreateReportOpt
 		return nil, fmt.Errorf("ProduceReport failed: %w", err)
 	}
 
-	newXml := internal.BuildXml(result.Report, internal.XmlOptions{
-		LiteralXmlDelimiter: internal.DEFAULT_LITERAL_XML_DELIMITER,
-	}, "")
+	newXml := internal.BuildXml(result.Report, xmlOptions, "")
 
 	slog.Debug("Writing report...")
 	zip.SetFile("word/document.xml", newXml)
@@ -76,6 +78,21 @@ func CreateReport(templatePath string, data *ReportData, options CreateReportOpt
 	err = internal.ProcessHtmls(result.Htmls, parseResult.MainDocument, parseResult.Zip)
 	if err != nil {
 		return nil, fmt.Errorf("ProcessHtmls failed: %w", err)
+	}
+
+	// Additionals headers and footers
+	for extraPath, extraNode := range parseResult.Extras {
+		prepped, err := internal.PreprocessTemplate(extraNode, *options.CmdDelimiter)
+		if err != nil {
+			return nil, fmt.Errorf("PreprocessTemplate failed: %w", err)
+		}
+		r, err := internal.ProduceReport(data, prepped, internal.NewContext(options, 73086257))
+		if err != nil {
+			return nil, fmt.Errorf("ProduceReport failed: %w", err)
+		}
+		extraXml := internal.BuildXml(r.Report, xmlOptions, "")
+		slog.Debug(fmt.Sprintf("Writing %s...", extraPath))
+		zip.SetFile(extraPath, extraXml)
 	}
 
 	if numHtmls > 0 || numImages > 0 {
@@ -106,9 +123,7 @@ func CreateReport(templatePath string, data *ReportData, options CreateReportOpt
 			slog.Debug("Completing [Content_Types].xml for HTML...")
 			ensureContentType("html", "text/html")
 		}
-		finalContentTypesXml := internal.BuildXml(parseResult.ContentTypes, internal.XmlOptions{
-			LiteralXmlDelimiter: internal.DEFAULT_LITERAL_XML_DELIMITER,
-		}, "")
+		finalContentTypesXml := internal.BuildXml(parseResult.ContentTypes, xmlOptions, "")
 		zip.SetFile(CONTENT_TYPES_PATH, finalContentTypesXml)
 	}
 
