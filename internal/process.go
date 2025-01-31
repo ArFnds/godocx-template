@@ -511,6 +511,15 @@ func runAndGetValue(text string, ctx *Context, data *ReportData) (string, error)
 	return value, nil
 }
 
+func processHtml(html string, ctx *Context) {
+	ctx.htmlId += 1
+	id := fmt.Sprint(ctx.htmlId)
+	relId := "html" + id
+	ctx.htmls[relId] = html
+	htmlNode := NewNonTextNode(ALTCHUNK_TAG, map[string]string{"r:id": relId}, nil)
+	ctx.pendingHtmlNode = htmlNode
+}
+
 func processCmd(data *ReportData, node Node, ctx *Context) (string, error) {
 	cmd := getCommand(ctx.cmd, ctx.shorthands, ctx.options.FixSmartQuotes)
 	ctx.cmd = "" // flush the context
@@ -589,6 +598,16 @@ func processCmd(data *ReportData, node Node, ctx *Context) (string, error) {
 		}
 	} else if cmdName == "LINK" {
 	} else if cmdName == "HTML" {
+		if !isLoopExploring(ctx) {
+			value, err := runAndGetValue(rest, ctx, data)
+			if err != nil {
+				return "", err
+			}
+			processHtml(value, ctx)
+			return "", nil
+		}
+
+		// CommandSyntaxError
 	} else {
 		return "", errors.New("CommandSyntaxError: " + cmd)
 	}

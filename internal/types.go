@@ -125,7 +125,7 @@ type Context struct {
 	pendingLinkNode          *NonTextNode
 	linkId                   int
 	links                    Links
-	pendingHtmlNode          *TextNode
+	pendingHtmlNode          Node
 	htmlId                   int
 	htmls                    Htmls
 	vars                     map[string]VarValue

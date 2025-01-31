@@ -71,6 +71,7 @@ func ProcessImages(images Images, documentComponent string, zip *ZipArchive) err
 func ProcessHtmls(htmls Htmls, documentComponent string, zip *ZipArchive) error {
 	slog.Debug(`Processing htmls for ` + documentComponent + "...")
 	if len(htmls) > 0 {
+		slog.Debug("Completing document.xml.rels...")
 		htmlFiles := make([]string, len(htmls))
 		i := 0
 

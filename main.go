@@ -106,8 +106,10 @@ Sanitaires
 					extensions := parser.CommonExtensions | parser.AutoHeadingIDs | parser.NoEmptyLineBeforeBlock
 					p := parser.NewWithExtensions(extensions)
 					doc := p.Parse([]byte(text))
-					htmlFlags := html.CommonFlags | html.HrefTargetBlank
-					opts := html.RendererOptions{Flags: htmlFlags}
+					htmlFlags := html.CommonFlags | html.HrefTargetBlank | html.CompletePage
+					opts := html.RendererOptions{
+						Flags: htmlFlags,
+					}
 					renderer := html.NewRenderer(opts)
 					html := markdown.Render(doc, renderer)
 					return string(html)
