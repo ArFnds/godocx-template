@@ -1,7 +1,6 @@
 package internal
 
 import (
-	"archive/zip"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -18,11 +17,11 @@ const (
 type ParseTemplateResult struct {
 	Root         Node
 	MainDocument string
-	ZipReader    *zip.ReadCloser
+	Zip          *ZipArchive
 	ContentTypes *NonTextNode
 }
 
-func ProcessImages(images Images, documentComponent string, zip *zip.ReadCloser, zipWriter *zip.Writer) error {
+func ProcessImages(images Images, documentComponent string, zip *ZipArchive) error {
 	//`Processing images for ${documentComponent}...`
 	slog.Debug("Processing images for " + documentComponent + "...")
 	imageIds := make([]string, len(images))
@@ -53,10 +52,8 @@ func ProcessImages(images Images, documentComponent string, zip *zip.ReadCloser,
 		// logger.debug(`Writing image ${imageId} (${imgName})...`);
 		slog.Debug("Writing image " + imageId + " (" + imgName + ")...")
 		imgPath := fmt.Sprintf("%s/media/%s", TEMPLATE_PATH, imgName)
-		err = ZipSet(zipWriter, imgPath, imgData)
-		if err != nil {
-			return err
-		}
+		zip.SetFile(imgPath, imgData)
+
 		AddChild(rels, NewNonTextNode("Relationship", map[string]string{
 			"Id":     imageId,
 			"Type":   "http://schemas.openxmlformats.org/officeDocument/2006/relationships/image",
@@ -67,14 +64,55 @@ func ProcessImages(images Images, documentComponent string, zip *zip.ReadCloser,
 		LiteralXmlDelimiter: DEFAULT_LITERAL_XML_DELIMITER,
 	}, "")
 
-	return ZipSet(zipWriter, relsPath, finalRelsXml)
+	zip.SetFile(relsPath, finalRelsXml)
+	return nil
 }
 
-func getRelsFromZip(zip *zip.ReadCloser, relsPath string) (Node, error) {
-	relsXml, err := ZipGetText(zip, relsPath)
+func ProcessHtmls(htmls Htmls, documentComponent string, zip *ZipArchive) error {
+	slog.Debug(`Processing htmls for ` + documentComponent + "...")
+	if len(htmls) > 0 {
+		htmlFiles := make([]string, len(htmls))
+		i := 0
+
+		relsPath := TEMPLATE_PATH + "/_rels/" + documentComponent + ".rels"
+		rels, err := getRelsFromZip(zip, relsPath)
+		if err != nil {
+			return err
+		}
+
+		for htmlId, htmlData := range htmls {
+			// Replace all period characters in the filename to play nice with more picky parsers (like Docx4j)
+			htmlName := fmt.Sprintf("template_%s_%s.html", strings.ReplaceAll(documentComponent, ".", "_"), htmlId)
+			slog.Debug(fmt.Sprintf("Writing html %s (%s)...\n", htmlId, htmlName))
+			htmlPath := fmt.Sprintf("%s/%s", TEMPLATE_PATH, htmlName)
+			htmlFiles[i] = "/" + htmlPath
+			i++
+
+			zip.SetFile(htmlPath, []byte(htmlData))
+			AddChild(rels, NewNonTextNode("Relationship", map[string]string{
+				"Id":     htmlId,
+				"Type":   "http://schemas.openxmlformats.org/officeDocument/2006/relationships/aFChunk",
+				"Target": htmlName,
+			}, nil))
+		}
+
+		finalRelsXml := BuildXml(rels, XmlOptions{
+			LiteralXmlDelimiter: DEFAULT_LITERAL_XML_DELIMITER,
+		}, "")
+
+		zip.SetFile(relsPath, finalRelsXml)
+	}
+	return nil
+}
+
+func getRelsFromZip(zip *ZipArchive, relsPath string) (Node, error) {
+	relsXmlBytes, err := zip.GetFile(relsPath)
 	if err != nil {
 		return nil, err
 	}
+
+	relsXml := string(relsXmlBytes)
+
 	if relsXml == "" {
 		relsXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 		  <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
@@ -83,14 +121,9 @@ func getRelsFromZip(zip *zip.ReadCloser, relsPath string) (Node, error) {
 	return ParseXml(relsXml)
 }
 
-func ParseTemplate(path string) (*ParseTemplateResult, error) {
-	zipTemplate, err := zip.OpenReader(path)
-	if err != nil {
-		return nil, err
-	}
-	//defer zipTemplate.Close()
+func ParseTemplate(zip *ZipArchive) (*ParseTemplateResult, error) {
 
-	contentTypes, err := readContentTypes(zipTemplate)
+	contentTypes, err := readContentTypes(zip)
 	if err != nil {
 		return nil, err
 	}
@@ -102,13 +135,13 @@ func ParseTemplate(path string) (*ParseTemplateResult, error) {
 	mainTemplatePath := fmt.Sprintf("%s/%s", TEMPLATE_PATH, mainDocument)
 
 	// open the main document
-	doc, err := ZipGetText(zipTemplate, mainTemplatePath)
+	doc, err := zip.GetFile(mainTemplatePath)
 	if err != nil {
 		return nil, err
 	}
 
 	// xml parse the document
-	root, err := ParseXml(doc)
+	root, err := ParseXml(string(doc))
 	if err != nil {
 		return nil, err
 	}
@@ -116,17 +149,17 @@ func ParseTemplate(path string) (*ParseTemplateResult, error) {
 	return &ParseTemplateResult{
 		Root:         root,
 		MainDocument: mainDocument,
-		ZipReader:    zipTemplate,
+		Zip:          zip,
 		ContentTypes: contentTypes,
 	}, nil
 }
 
-func parsePath(zipReader *zip.ReadCloser, xmlPath string) (*NonTextNode, error) {
-	xmlFile, err := ZipGetText(zipReader, xmlPath)
+func parsePath(zip *ZipArchive, xmlPath string) (*NonTextNode, error) {
+	xmlFile, err := zip.GetFile(xmlPath)
 	if err != nil {
 		return nil, err
 	}
-	root, err := ParseXml(xmlFile)
+	root, err := ParseXml(string(xmlFile))
 	if err != nil {
 		return nil, err
 	}
@@ -137,8 +170,8 @@ func parsePath(zipReader *zip.ReadCloser, xmlPath string) (*NonTextNode, error) 
 	return nonTextNode, nil
 }
 
-func readContentTypes(zipReader *zip.ReadCloser) (*NonTextNode, error) {
-	return parsePath(zipReader, CONTENT_TYPES_PATH)
+func readContentTypes(zip *ZipArchive) (*NonTextNode, error) {
+	return parsePath(zip, CONTENT_TYPES_PATH)
 }
 
 func getMainDoc(contentTypes *NonTextNode) (string, error) {

@@ -1,7 +1,6 @@
 package report
 
 import (
-	"archive/zip"
 	"bytes"
 	"fmt"
 
@@ -24,17 +23,18 @@ const (
 //   - A byte slice representing the generated document.
 //   - An error if any occurs during template parsing, processing, or document generation.
 func CreateReport(templatePath string, data *ReportData, options CreateReportOptions) ([]byte, error) {
+
+	outBuffer := new(bytes.Buffer)
+	zip, err := internal.NewZipArchive(templatePath, outBuffer)
+	if err != nil {
+		return nil, err
+	}
+
 	// xml parse the document
-	parseResult, err := internal.ParseTemplate(templatePath)
+	parseResult, err := internal.ParseTemplate(zip)
 	if err != nil {
 		return nil, fmt.Errorf("ParseTemplate failed: %w", err)
 	}
-	defer parseResult.ZipReader.Close()
-
-	outBuffer := new(bytes.Buffer)
-
-	writer := zip.NewWriter(outBuffer)
-	defer writer.Close()
 
 	if options.CmdDelimiter == nil {
 		options.CmdDelimiter = &internal.Delimiters{
@@ -45,47 +45,33 @@ func CreateReport(templatePath string, data *ReportData, options CreateReportOpt
 
 	preppedTemplate, err := internal.PreprocessTemplate(parseResult.Root, *options.CmdDelimiter)
 	if err != nil {
-		panic(err)
+		return nil, fmt.Errorf("PreprocessTemplate failed: %w", err)
 	}
 
 	result, err := internal.ProduceReport(data, preppedTemplate, internal.NewContext(options, 73086257))
 	//TODO ^ max id
 	if err != nil {
-		panic(err)
+		return nil, fmt.Errorf("ProduceReport failed: %w", err)
 	}
 
-	numImages := len(result.Images)
-	internal.ProcessImages(result.Images, parseResult.MainDocument, parseResult.ZipReader, writer)
+	err = internal.ProcessImages(result.Images, parseResult.MainDocument, parseResult.Zip)
+	if err != nil {
+		return nil, fmt.Errorf("ProcessImages failed: %w", err)
+	}
+	//err = internal.ProcessHtmls(result.Htmls, parseResult.MainDocument, parseResult.Zip)
+	//if err != nil {
+	//	return nil, fmt.Errorf("ProcessHtmls failed: %w", err)
+	//}
 
 	newXml := internal.BuildXml(result.Report, internal.XmlOptions{
 		LiteralXmlDelimiter: internal.DEFAULT_LITERAL_XML_DELIMITER,
 	}, "")
 
-	excludes := []string{
-		"word/document.xml",
-	}
+	zip.SetFile("word/document.xml", newXml)
 
-	if numImages > 0 {
-		excludes = append(excludes, "word/_rels/document.xml.rels")
-	}
-
-	err = internal.ZipClone(parseResult.ZipReader, writer, excludes)
+	err = zip.Close()
 	if err != nil {
-		return nil, fmt.Errorf("Erreur lors de la clonage du fichier ZIP de sortie : %w", err)
-	}
-
-	err = internal.ZipSet(writer, "word/document.xml", newXml)
-	if err != nil {
-		return nil, fmt.Errorf("Erreur lors de la clonage du fichier ZIP de sortie : %w", err)
-	}
-
-	err = writer.Flush()
-	if err != nil {
-		return nil, fmt.Errorf("Erreur lors du flush du writer : %w", err)
-	}
-	err = writer.Close()
-	if err != nil {
-		return nil, fmt.Errorf("Erreur lors de la fermeture du writer : %w", err)
+		return nil, fmt.Errorf("Error closing zip : %w", err)
 	}
 	return outBuffer.Bytes(), nil
 }
