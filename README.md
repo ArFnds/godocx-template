@@ -64,7 +64,7 @@ import (
 	"reflect"
 	"time"
 
-	. "github.com/ArFnds/godocx-template/pkg/report"
+	. "github.com/ArFnds/godocx-template"
 )
 
 func main() {
@@ -72,7 +72,7 @@ func main() {
 		"dateOfDay":         time.Now().Local().Format("02/01/2006"),
 		"acceptDate":        time.Now().Local().Format("02/01/2006"),
 		"company":           "The company",
-      	"persons": []map[string]any{
+      	"people": []map[string]any{
 			{"firstname": "John", "lastname": "Doe"},
 			{"firstname": "Barn", "lastname": "Simson"},
 		},
@@ -100,13 +100,30 @@ func main() {
 
 # Writing templates
 
-**TODO**
+Create a word file, and write your template inside it.
+
+```
+dateOfDay: +++dateOfDay+++  acceptDate: +++acceptDate+++
+company: +++company+++
+
++++FOR person IN people+++
+  person:  +++INS $person.firstname+++  +++INS $person.lastname+++
++++END-FOR person+++
+```
 
 ## Custom command delimiters
 You can use different **left/right command delimiters** by passing an object to `CmdDelimiter`:
 
 
-**TODO**
+```go
+options := CreateReportOptions{
+	LiteralXmlDelimiter: "||",
+	CmdDelimiter: &Delimiters{
+		Open:  "{",
+		Close: "}",
+	},
+}
+```
 
 This allows much cleaner-looking templates!
 
@@ -128,7 +145,7 @@ import (
 	"os"
 	"time"
 
-	. "github.com/ArFnds/godocx-template/pkg/report"
+	. "github.com/ArFnds/godocx-template"
 )
 
 func main() {
@@ -174,7 +191,7 @@ You can also use `=` as shorthand notation instead of `INS`:
 +++= name+++ +++= surname+++
 ```
 
-Even shorter (and with custom `cmdDelimiter: ['{', '}']`):
+Even shorter (and with custom `CmdDelimiter: &Delimiters{Open: "{", Close: "}"}`):
 
 ```
 {name} {surname}
@@ -237,7 +254,7 @@ data := ReportData {
 Loop over a group of elements (resulting from the evaluation of a JavaScript expression):
 
 ```
-+++FOR person IN personsArray+++
++++FOR person IN peopleArray+++
 +++INS $person.name+++ (since +++INS $person.since+++)
 +++END-FOR person+++
 ```
