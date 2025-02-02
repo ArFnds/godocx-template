@@ -1,4 +1,4 @@
-# Godocx-templates 
+# Godocx-templates
 
 Template-based docx report creation. ([See the blog post](http://guigrpa.github.io/2017/01/01/word-docs-the-relay-way/)).
 
@@ -12,7 +12,7 @@ go get github.com/ArFnds/godocx-template
 
 * **Write documents naturally using Word**, just adding some commands where needed for dynamic contents
 
-## Features 
+## Features
 * **Insert the data** in your document (`INS`, `=` or just *nothing*)
 * **Embed images and HTML** (`IMAGE`, `HTML`). Dynamic images can be great for on-the-fly QR codes, downloading photos straight to your reports, charts… even maps!
 * Add **loops** with `FOR`/`END-FOR` commands, with support for table rows, nested loops, and JavaScript processing of elements (filter, sort, etc)
@@ -21,8 +21,6 @@ go get github.com/ArFnds/godocx-template
 * **Embed hyperlinks** (`LINK`).
 
 ### Not yet supported
-- [ ] Include contents **conditionally**, `IF` 
-
 Contributions are welcome!
 
 # Table of contents
@@ -243,7 +241,7 @@ The value should be an _ImagePars_, containing:
 
 * `width`: desired width of the image on the page _in cm_. Note that the aspect ratio should match that of the input image to avoid stretching.
 * `height` desired height of the image on the page _in cm_.
-* `data`: either an ArrayBuffer or a base64 string with the image data
+* `data`: an ByteArray with the image data
 * `extension`: one of `'.png'`, `'.gif'`, `'.jpg'`, `'.jpeg'`, `'.svg'`.
 * `thumbnail` _[optional]_: when injecting an SVG image, a fallback non-SVG (png/jpg/gif, etc.) image can be provided. This thumbnail is used when SVG images are not supported (e.g. older versions of Word) or when the document is previewed by e.g. Windows Explorer. See usage example below.
 * `alt` _[optional]_: optional alt text.
