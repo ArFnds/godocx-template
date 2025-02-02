@@ -2,6 +2,7 @@ package godocx
 
 import "github.com/ArFnds/godocx-template/internal"
 
+type Delimiters = internal.Delimiters
 type ReportData = internal.ReportData
 type ImagePars = internal.ImagePars
 type CreateReportOptions = internal.CreateReportOptions
