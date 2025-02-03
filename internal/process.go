@@ -71,7 +71,7 @@ func ProduceReport(data *ReportData, template Node, ctx Context) (*ReportOutput,
 
 func notBuiltIns(cmd string) bool {
 	upperCmd := strings.ToUpper(cmd)
-	return !slices.ContainsFunc(BUILT_IN_COMMANDS, func(b string) bool { return strings.HasPrefix(upperCmd, b+" ") })
+	return !slices.ContainsFunc(BUILT_IN_COMMANDS, func(b string) bool { return strings.HasPrefix(upperCmd, b) })
 }
 
 func getCommand(command string, shorthands map[string]string, fixSmartQuotes bool) (string, error) {
@@ -113,6 +113,7 @@ func getCommand(command string, shorthands map[string]string, fixSmartQuotes boo
 func splitCommand(cmd string) (cmdName string, rest string) {
 	// const cmdNameMatch = /^(\S+)\s*/.exec(cmd);
 	re := regexp.MustCompile(`^(\S+)\s*`)
+
 	cmdNameMatch := re.FindStringSubmatch(cmd)
 
 	if len(cmdNameMatch) > 0 {
@@ -148,7 +149,12 @@ func processForIf(data *ReportData, node Node, ctx *Context, cmd string, cmdName
 	curLoop := getCurLoop(ctx)
 	if !(curLoop != nil && curLoop.varName == varName) {
 		if isIf {
-
+			// Check if there is already an IF statement with the same name
+			for _, loop := range ctx.loops {
+				if loop.isIf && loop.varName == varName {
+					return NewInvalidCommandError("Duplicate IF statement", cmd)
+				}
+			}
 		}
 
 		parentLoopLevel := len(ctx.loops) - 1
@@ -158,16 +164,35 @@ func processForIf(data *ReportData, node Node, ctx *Context, cmd string, cmdName
 		if fParentIsExploring {
 			loopOver = []VarValue{}
 		} else if isIf {
-			// TODO handle if
-			//shouldRun, err := runUserJsAndGetRaw(data, cmdRest, ctx)
-			//if err != nil {
-			//	return err
-			//}
-			//if shouldRun {
-			//	loopOver = []interface{}{1}
-			//} else {
-			//	loopOver = []interface{}{}
-			//}
+			// Evaluate IF condition expression
+			shouldRun, err := runAndGetValue(cmdRest, ctx, data)
+			if err != nil {
+				return err
+			}
+			// Determine whether to execute the IF block based on the condition result
+			if shouldRun != nil {
+				// Handle all non-nil values uniformly
+				switch v := shouldRun.(type) {
+				case bool:
+					if v {
+						loopOver = []VarValue{1}
+					} else {
+						loopOver = []VarValue{}
+					}
+				case string:
+					if v != "" {
+						loopOver = []VarValue{1}
+					} else {
+						loopOver = []VarValue{}
+					}
+				default:
+					// For numeric types and other types, treat as true if not nil
+					loopOver = []VarValue{1}
+				}
+			} else {
+				// nil value is treated as false
+				loopOver = []VarValue{}
+			}
 		} else {
 			if forMatch == nil {
 				return errors.New("Invalid FOR command")
@@ -212,6 +237,11 @@ func processEndForIf(node Node, ctx *Context, cmd string, cmdName string, cmdRes
 		return NewInvalidCommandError(errorMessage, cmd)
 	}
 
+	// Ensure the current loop is an IF statement
+	if isIf && !curLoop.isIf {
+		return NewInvalidCommandError("END-IF found in FOR loop context", cmd)
+	}
+
 	// Reset the if check flag for the corresponding p or tr parent node
 	parentPorTrNode := findParentPorTrNode(node)
 	var parentPorTrNodeTag string
@@ -231,16 +261,10 @@ func processEndForIf(node Node, ctx *Context, cmd string, cmdName string, cmdRes
 		ctx.gCntEndIf += 1
 	}
 
-	// Check if this is the expected END-IF/END-FOR. If not:
-	// - If it's one of the nested varNames, throw
-	// - If it's not one of the nested varNames, ignore it; we find
-	//   cases in which an END-IF/FOR is found that belongs to a previous
-	//   part of the paragraph of the current loop.
+	// For END-IF, we don't need to check the variable name
+	// For END-FOR, we still need to check the variable name
 	varName := cmdRest
-	if isIf {
-		varName = node.Name()
-	}
-	if curLoop.varName != varName {
+	if !isIf && curLoop.varName != varName {
 		if !slices.ContainsFunc(ctx.loops, func(loop LoopStatus) bool { return loop.varName == varName }) {
 			slog.Debug("Ignoring "+cmd+"("+varName+", but we're expecting "+curLoop.varName+")", "varName", varName)
 			return nil
@@ -257,8 +281,10 @@ func processEndForIf(node Node, ctx *Context, cmd string, cmdName string, cmdRes
 
 	if nextItem != nil {
 		// next iteration
-		ctx.vars["$"+varName] = nextItem
-		ctx.vars["$idx"] = nextIdx
+		if !isIf {
+			ctx.vars["$"+varName] = nextItem
+			ctx.vars["$idx"] = nextIdx
+		}
 		ctx.fJump = true
 		curLoop.idx = nextIdx
 	} else {
@@ -578,6 +604,49 @@ func runFunction(funcName string, args []string, ctx *Context, data *ReportData)
 
 func runAndGetValue(text string, ctx *Context, data *ReportData) (VarValue, error) {
 	var value VarValue
+	// Process conditional expression
+	// Check comparison operators
+	for _, op := range []string{"==", "!=", ">=", "<=", ">", "<"} {
+		if strings.Contains(text, op) {
+			parts := strings.Split(text, op)
+			if len(parts) == 2 {
+				left, err := runAndGetValue(strings.TrimSpace(parts[0]), ctx, data)
+				if err != nil {
+					return nil, err
+				}
+				right, err := runAndGetValue(strings.TrimSpace(parts[1]), ctx, data)
+				if err != nil {
+					return nil, err
+				}
+
+				// Convert to numeric values for comparison
+				leftNum, leftIsNum := toNumber(left)
+				rightNum, rightIsNum := toNumber(right)
+
+				if leftIsNum && rightIsNum {
+					switch op {
+					case "==":
+						return leftNum == rightNum, nil
+					case ">=":
+						return leftNum >= rightNum, nil
+					case "<=":
+						return leftNum <= rightNum, nil
+					case ">":
+						return leftNum > rightNum, nil
+					case "<":
+						return leftNum < rightNum, nil
+					}
+				} else if op == "==" {
+					// For non-numeric values,handle equality comparison
+					return left == right, nil
+				} else if op == "!=" {
+					// For non-numeric values, handle not equality comparison
+					return left != right, nil
+				}
+			}
+		}
+	}
+
 	if args, isFunction := parseFunctionCall(text); isFunction {
 		funcName := args[0]
 		args = args[1:]
@@ -595,6 +664,27 @@ func runAndGetValue(text string, ctx *Context, data *ReportData) (VarValue, erro
 		return "", errors.New("Fail to compute value for " + text)
 	}
 	return value, nil
+}
+
+// Helper function: Convert value to float64 for comparison
+func toNumber(v interface{}) (float64, bool) {
+	switch val := v.(type) {
+	case int:
+		return float64(val), true
+	case int32:
+		return float64(val), true
+	case int64:
+		return float64(val), true
+	case float32:
+		return float64(val), true
+	case float64:
+		return val, true
+	case string:
+		if f, err := strconv.ParseFloat(val, 64); err == nil {
+			return f, true
+		}
+	}
+	return 0, false
 }
 
 func processHtml(html string, ctx *Context) {
@@ -616,12 +706,14 @@ func processHtml(html string, ctx *Context) {
 
 func processCmd(data *ReportData, node Node, ctx *Context) (string, error) {
 	cmd, err := getCommand(ctx.cmd, ctx.shorthands, ctx.options.FixSmartQuotes)
+
 	if err != nil {
 		return "", err
 	}
 	ctx.cmd = "" // flush the context
 
 	cmdName, rest := splitCommand(cmd)
+
 	//if (cmdName !== "CMD_NODE") logger.debug(`Processing cmd: ${cmd}`);
 	if cmdName != "CMD_NODE" {
 		slog.Debug("Processing cmd", "cmd", cmd)
@@ -1009,6 +1101,7 @@ func walkTemplate(data *ReportData, template Node, ctx *Context, processor Comma
 		if ctx.options.FailFast {
 			return nil, IncompleteConditionalStatementError
 		} else {
+
 			retErr = errors.Join(retErr, IncompleteConditionalStatementError)
 		}
 	}

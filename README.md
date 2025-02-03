@@ -21,6 +21,7 @@ go get github.com/ArFnds/godocx-template
 * **Embed hyperlinks** (`LINK`).
 
 ### Not yet supported
+
 Contributions are welcome!
 
 # Table of contents
@@ -40,6 +41,7 @@ Contributions are welcome!
 		- [`HTML`](#html)
 		- [`IMAGE`](#image)
 		- [`FOR` and `END-FOR`](#for-and-end-for)
+		- [`IF` and `END-IF`](#if-and-end-if)
 		- [`ALIAS` (and alias resolution with `*`)](#alias-and-alias-resolution-with-)
 	- [Inserting literal XML](#inserting-literal-xml)
 - [License (MIT)](#license-mit)
@@ -335,6 +337,17 @@ Finally, you can nest loops (this example assumes a different data set):
 
 +++END-FOR company+++
 ```
+### `IF` and `END-IF`
+
+Include contents conditionally (support: ==, !=, >=, <=, >, <):
+
+```
++++IF name == 'John'+++
+ Name is John
++++END-IF+++
+```
+
+The `IF` command is implemented as a `FOR` command with 1 or 0 iterations, depending on the expression value.
 
 ### `ALIAS` (and alias resolution with `*`)
 

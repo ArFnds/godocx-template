@@ -385,4 +385,125 @@ func TestCreateReport(t *testing.T) {
 			return nil
 		})
 	})
+
+	// Test IF condition processing
+	t.Run("if condition processing", func(t *testing.T) {
+		data := ReportData{
+			"isActive":   true,
+			"isInactive": false,
+			"name":       "John",
+			"age":        25,
+			"score":      85,
+		}
+
+		// Create template files for testing
+		templateContent := []byte(`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+		<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
+			<w:body>
+				<w:p>
+					<w:r>
+						<w:t>Boolean Test:</w:t>
+					</w:r>
+				</w:p>
+				<w:p>
+					<w:r>
+						<w:t>+++IF isActive+++</w:t>
+						<w:t>Active user</w:t>
+						<w:t>+++END-IF+++</w:t>
+					</w:r>
+				</w:p>
+				<w:p>
+					<w:r>
+						<w:t>+++IF name == 'John'+++</w:t>
+						<w:t>Name is John</w:t>
+						<w:t>+++END-IF+++</w:t>
+					</w:r>
+				</w:p>
+				<w:p>
+					<w:r>
+						<w:t>+++IF name != 'Sean'+++</w:t>
+						<w:t>Name is not Sean</w:t>
+						<w:t>+++END-IF+++</w:t>
+					</w:r>
+				</w:p>
+				<w:p>
+					<w:r>
+						<w:t>+++IF age > 18+++</w:t>
+						<w:t>Adult</w:t>
+						<w:t>+++END-IF+++</w:t>
+					</w:r>
+				</w:p>
+				<w:p>
+					<w:r>
+						<w:t>+++IF score >= 80+++</w:t>
+						<w:t>High Score</w:t>
+						<w:t>+++END-IF+++</w:t>
+					</w:r>
+				</w:p>
+				<w:p>
+					<w:r>
+						<w:t>+++IF isInactive+++</w:t>
+						<w:t>Inactive user</w:t>
+						<w:t>+++END-IF+++</w:t>
+					</w:r>
+				</w:p>
+				<w:p>
+					<w:r>
+						<w:t>+++IF name == 'Jane'+++</w:t>
+						<w:t>Name is Jane</w:t>
+						<w:t>+++END-IF+++</w:t>
+					</w:r>
+				</w:p>
+			</w:body>
+		</w:document>`)
+		err := createTestDocx(templateContent, "test_template_if.docx")
+		if err != nil {
+			t.Fatalf("Failed to create test template: %v", err)
+		}
+		defer os.Remove("test_template_if.docx")
+
+		// Run test
+		options := CreateReportOptions{
+			LiteralXmlDelimiter: "||",
+		}
+
+		outBuf, err := CreateReport("test_template_if.docx", &data, options)
+		if err != nil {
+			t.Fatalf("CreateReport failed: %v", err)
+		}
+
+		// Save the output file
+		os.WriteFile("test_output_if.docx", outBuf, 0644)
+		defer os.Remove("test_output_if.docx")
+
+		// Verify the generated file content
+		verifyDocxContent(t, "test_output_if.docx", func(documentXml []byte) error {
+			// Should appear in document
+			expectedPresent := []string{
+				"Active user",
+				"Name is John",
+				"Adult",
+				"High Score",
+				"Name is not Sean",
+			}
+			for _, val := range expectedPresent {
+				if !bytes.Contains(documentXml, []byte(val)) {
+					return fmt.Errorf("Generated document does not contain expected value: %s", val)
+				}
+			}
+
+			// Should not appear in document
+			expectedAbsent := []string{
+				"Inactive user",
+				"Name is Jane",
+			}
+			for _, val := range expectedAbsent {
+				if bytes.Contains(documentXml, []byte(val)) {
+					return fmt.Errorf("Generated document contains unexpected value: %s", val)
+				}
+			}
+			return nil
+		})
+	})
+
 }
