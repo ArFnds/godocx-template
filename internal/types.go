@@ -207,6 +207,11 @@ type LoopStatus struct {
 	isIf         bool
 }
 
+type LinkPars struct {
+	Url   string
+	Label string
+}
+
 type Link struct{ url string }
 type Links map[string]Link
 type Htmls map[string]string

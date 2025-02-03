@@ -107,6 +107,42 @@ func ProcessHtmls(htmls Htmls, documentComponent string, zip *ZipArchive) error 
 	return nil
 }
 
+func ProcessLinks(links Links, documentComponent string, zip *ZipArchive) error {
+	slog.Debug(`Processing links for ` + documentComponent + "...")
+	linkIds := make([]string, len(links))
+
+	i := 0
+	for k := range links {
+		linkIds[i] = k
+		i++
+	}
+	if len(linkIds) == 0 {
+		return nil
+	}
+	slog.Debug("Completing document.xml.rels...")
+	//relsPath = `${TEMPLATE_PATH}/_rels/${documentComponent}.rels`;
+	relsPath := fmt.Sprintf("%s/_rels/%s.rels", TEMPLATE_PATH, documentComponent)
+	rels, err := getRelsFromZip(zip, relsPath)
+	if err != nil {
+		return err
+	}
+
+	for _, linkId := range linkIds {
+		url := links[linkId].url
+		AddChild(rels, NewNonTextNode("Relationship", map[string]string{
+			"Id":         linkId,
+			"Type":       "http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink",
+			"Target":     url,
+			"TargetMode": "External",
+		}, nil))
+	}
+	finalRelsXml := BuildXml(rels, XmlOptions{
+		LiteralXmlDelimiter: DEFAULT_LITERAL_XML_DELIMITER,
+	}, "")
+	zip.SetFile(relsPath, finalRelsXml)
+	return nil
+}
+
 func getRelsFromZip(zip *ZipArchive, relsPath string) (Node, error) {
 	relsXmlBytes, err := zip.GetFile(relsPath)
 	if err != nil {

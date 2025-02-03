@@ -79,6 +79,10 @@ func CreateReport(templatePath string, data *ReportData, options CreateReportOpt
 	if err != nil {
 		return nil, fmt.Errorf("ProcessHtmls failed: %w", err)
 	}
+	err = internal.ProcessLinks(result.Links, parseResult.MainDocument, parseResult.Zip)
+	if err != nil {
+		return nil, fmt.Errorf("ProcessLinks failed: %w", err)
+	}
 
 	// Additionals headers and footers
 	for extraPath, extraNode := range parseResult.Extras {

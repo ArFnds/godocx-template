@@ -427,6 +427,40 @@ func processImage(ctx *Context, imagePars *ImagePars) error {
 
 	return nil
 }
+func processLink(ctx *Context, linkPars *LinkPars) error {
+	url := linkPars.Url
+	label := linkPars.Label
+	if label == "" {
+		label = url
+	}
+
+	ctx.linkId += 1
+	id := fmt.Sprint(ctx.linkId)
+	relId := "link" + id
+
+	ctx.links[relId] = Link{
+		url: url,
+	}
+
+	node := NewNonTextNode
+	textRunPropsNode := ctx.textRunPropsNode
+
+	if textRunPropsNode == nil {
+		textRunPropsNode = node("w:rPr", nil, []Node{
+			node("w:u", map[string]string{"w:val": "single"}, nil),
+		})
+	}
+
+	link := node("w:hyperlink", map[string]string{"r:id": relId, "w:history": "1"}, []Node{
+		node("w:r", nil, []Node{
+			textRunPropsNode,
+			node("w:t", nil, []Node{NewTextNode(label)}),
+		}),
+	})
+	ctx.pendingLinkNode = link
+
+	return nil
+}
 
 func findParentPorTrNode(node Node) (resultNode Node) {
 	parentNode := node.Parent()
@@ -480,16 +514,21 @@ func parseFunctionCall(rest string) ([]string, bool) {
 	return nil, false
 }
 
-func recVarValue(key string, inVarValue VarValue) (varValue VarValue, exists bool) {
-	reflectValue := reflect.ValueOf(inVarValue)
-	if reflectValue.Kind() == reflect.Map {
-		reflectKey := reflect.ValueOf(key)
-		if fieldValue := reflectValue.MapIndex(reflectKey); fieldValue.IsValid() {
-			varValue = fieldValue.Interface()
-			exists = true
+func isLink(varValue VarValue) (*LinkPars, bool) {
+	if strMap, ok := varValue.(map[string]any); ok {
+		url, hasUrl := strMap["url"].(string)
+		label, _ := strMap["label"].(string)
+
+		if hasUrl {
+			return &LinkPars{
+				Url:   url,
+				Label: label,
+			}, true
 		}
+	} else if linkPars, ok := varValue.(*LinkPars); ok {
+		return linkPars, true
 	}
-	return
+	return nil, false
 }
 
 func getFromVars(ctx *Context, key string) (varValue VarValue, exists bool) {
@@ -665,7 +704,21 @@ func processCmd(data *ReportData, node Node, ctx *Context) (string, error) {
 				return "", errors.New("Not an image as result of " + rest)
 			}
 		}
+
+		// LINK <code>
 	} else if cmdName == "LINK" {
+		if !isLoopExploring(ctx) {
+			pars, err := runAndGetValue(rest, ctx, data)
+			if err != nil {
+				return "", fmt.Errorf("LinkError: %w", err)
+			}
+			if linkPars, ok := isLink(pars); ok {
+				err := processLink(ctx, linkPars)
+				if err != nil {
+					return "", fmt.Errorf("LinkError: %w", err)
+				}
+			}
+		}
 	} else if cmdName == "HTML" {
 		if !isLoopExploring(ctx) {
 			varValue, err := runAndGetValue(rest, ctx, data)

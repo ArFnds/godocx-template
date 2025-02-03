@@ -10,7 +10,7 @@ import (
 
 	_ "embed"
 
-	. "github.com/ArFnds/godocx-template/pkg/report"
+	. "github.com/ArFnds/godocx-template"
 	"github.com/skip2/go-qrcode"
 )
 

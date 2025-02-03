@@ -18,11 +18,10 @@ go get github.com/ArFnds/godocx-template
 * Add **loops** with `FOR`/`END-FOR` commands, with support for table rows, nested loops, and JavaScript processing of elements (filter, sort, etc)
 * Define custom **aliases** for some commands (`ALIAS`) — useful for writing table templates!
 * Plenty of **examples** in this repo
+* **Embed hyperlinks** (`LINK`).
 
 ### Not yet supported
-- [ ] **Embed hyperlinks** (`LINK`).
 - [ ] Include contents **conditionally**, `IF` 
-
 
 Contributions are welcome!
 
@@ -39,6 +38,7 @@ Contributions are welcome!
 	- [Custom command delimiters](#custom-command-delimiters)
 	- [Supported commands](#supported-commands)
 		- [Insert data with the `INS` command ( or using `=`, or nothing at all)](#insert-data-with-the-ins-command--or-using--or-nothing-at-all)
+		- [`LINK`](#link)
 		- [`HTML`](#html)
 		- [`IMAGE`](#image)
 		- [`FOR` and `END-FOR`](#for-and-end-for)
@@ -196,6 +196,26 @@ Even shorter (and with custom `CmdDelimiter: &Delimiters{Open: "{", Close: "}"}`
 ```
 {name} {surname}
 ```
+
+### `LINK`
+
+Includes a hyperlink from a `map[string]any` with a `url` and `label` key,  or `*LinkPars`:
+
+```go
+data := ReportData {
+	"projectLink": &LinkPars {
+		Url: "https://theproject.url",
+		Label: "The label"
+	}
+}
+```
+
+
+```
++++LINK projectLink+++
+```
+
+If the `label` is not specified, the URL is used as a label.
 
 ### `HTML`
 
