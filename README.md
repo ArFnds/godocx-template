@@ -1,4 +1,4 @@
-# Godocx-templates 
+# Godocx-templates
 
 Template-based docx report creation. ([See the blog post](http://guigrpa.github.io/2017/01/01/word-docs-the-relay-way/)).
 
@@ -12,7 +12,7 @@ go get github.com/ArFnds/godocx-template
 
 * **Write documents naturally using Word**, just adding some commands where needed for dynamic contents
 
-## Features 
+## Features
 * **Insert the data** in your document (`INS`, `=` or just *nothing*)
 * **Embed images and HTML** (`IMAGE`, `HTML`). Dynamic images can be great for on-the-fly QR codes, downloading photos straight to your reports, charts… even maps!
 * Add **loops** with `FOR`/`END-FOR` commands, with support for table rows, nested loops, and JavaScript processing of elements (filter, sort, etc)
@@ -21,7 +21,6 @@ go get github.com/ArFnds/godocx-template
 * **Embed hyperlinks** (`LINK`).
 
 ### Not yet supported
-- [ ] Include contents **conditionally**, `IF` 
 
 Contributions are welcome!
 
@@ -42,6 +41,7 @@ Contributions are welcome!
 		- [`HTML`](#html)
 		- [`IMAGE`](#image)
 		- [`FOR` and `END-FOR`](#for-and-end-for)
+		- [`IF` and `END-IF`](#if-and-end-if)
 		- [`ALIAS` (and alias resolution with `*`)](#alias-and-alias-resolution-with-)
 	- [Inserting literal XML](#inserting-literal-xml)
 - [License (MIT)](#license-mit)
@@ -49,7 +49,7 @@ Contributions are welcome!
 # Installation
 
 ```
-$ go get github.com/ArFnds/godocx-template/pkg/report
+$ go get github.com/ArFnds/godocx-template
 ```
 
 # Usage
@@ -72,9 +72,9 @@ func main() {
 		"dateOfDay":         time.Now().Local().Format("02/01/2006"),
 		"acceptDate":        time.Now().Local().Format("02/01/2006"),
 		"company":           "The company",
-      	"people": []map[string]any{
-			{"firstname": "John", "lastname": "Doe"},
-			{"firstname": "Barn", "lastname": "Simson"},
+		"people": []any{
+			map[string]any{"name": "John", "lastname": "Doe"},
+			map[string]any{"name": "Barn", "lastname": "Simson"},
 		},
    }
 
@@ -243,7 +243,7 @@ The value should be an _ImagePars_, containing:
 
 * `width`: desired width of the image on the page _in cm_. Note that the aspect ratio should match that of the input image to avoid stretching.
 * `height` desired height of the image on the page _in cm_.
-* `data`: either an ArrayBuffer or a base64 string with the image data
+* `data`: an ByteArray with the image data
 * `extension`: one of `'.png'`, `'.gif'`, `'.jpg'`, `'.jpeg'`, `'.svg'`.
 * `thumbnail` _[optional]_: when injecting an SVG image, a fallback non-SVG (png/jpg/gif, etc.) image can be provided. This thumbnail is used when SVG images are not supported (e.g. older versions of Word) or when the document is previewed by e.g. Windows Explorer. See usage example below.
 * `alt` _[optional]_: optional alt text.
@@ -271,8 +271,7 @@ data := ReportData {
 
 ### `FOR` and `END-FOR`
 
-Loop over a group of elements (resulting from the evaluation of a JavaScript expression):
-
+Loop over a group of elements (can only iterate over Array).
 ```
 +++FOR person IN peopleArray+++
 +++INS $person.name+++ (since +++INS $person.since+++)
@@ -337,6 +336,17 @@ Finally, you can nest loops (this example assumes a different data set):
 
 +++END-FOR company+++
 ```
+### `IF` and `END-IF`
+
+Include contents conditionally (support: ==, !=, >=, <=, >, <):
+
+```
++++IF name == 'John'+++
+ Name is John
++++END-IF+++
+```
+
+The `IF` command is implemented as a `FOR` command with 1 or 0 iterations, depending on the expression value.
 
 ### `ALIAS` (and alias resolution with `*`)
 
