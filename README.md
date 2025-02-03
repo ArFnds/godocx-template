@@ -49,7 +49,7 @@ Contributions are welcome!
 # Installation
 
 ```
-$ go get github.com/ArFnds/godocx-template/pkg/report
+$ go get github.com/ArFnds/godocx-template
 ```
 
 # Usage
@@ -72,9 +72,9 @@ func main() {
 		"dateOfDay":         time.Now().Local().Format("02/01/2006"),
 		"acceptDate":        time.Now().Local().Format("02/01/2006"),
 		"company":           "The company",
-      	"people": []map[string]any{
-			{"firstname": "John", "lastname": "Doe"},
-			{"firstname": "Barn", "lastname": "Simson"},
+		"people": []any{
+			map[string]any{"name": "John", "lastname": "Doe"},
+			map[string]any{"name": "Barn", "lastname": "Simson"},
 		},
    }
 
@@ -271,8 +271,7 @@ data := ReportData {
 
 ### `FOR` and `END-FOR`
 
-Loop over a group of elements (resulting from the evaluation of a JavaScript expression):
-
+Loop over a group of elements (can only iterate over Array).
 ```
 +++FOR person IN peopleArray+++
 +++INS $person.name+++ (since +++INS $person.since+++)
