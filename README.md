@@ -15,7 +15,8 @@ go get github.com/ArFnds/godocx-template
 ## Features
 * **Insert the data** in your document (`INS`, `=` or just *nothing*)
 * **Embed images and HTML** (`IMAGE`, `HTML`). Dynamic images can be great for on-the-fly QR codes, downloading photos straight to your reports, charts… even maps!
-* Add **loops** with `FOR`/`END-FOR` commands, with support for table rows, nested loops, and JavaScript processing of elements (filter, sort, etc)
+* Add **loops** with `FOR`/`END-FOR` commands, with support for table rows, nested loops
+* Include contents conditionally, IF a certain code expression is truthy (`IF`/`END-IF`)
 * Define custom **aliases** for some commands (`ALIAS`) — useful for writing table templates!
 * Plenty of **examples** in this repo
 * **Embed hyperlinks** (`LINK`).
@@ -79,7 +80,7 @@ func main() {
    }
 
    options := CreateReportOptions{
-      // mandatory
+        // mandatory
 		LiteralXmlDelimiter: "||",
 		// optionals
 		ProcessLineBreaks: true,
@@ -135,7 +136,7 @@ Currently supported commands are defined below.
 
 ### Insert data with the `INS` command ( or using `=`, or nothing at all)
 
-Inserts the result of a given JavaScript snippet as follows.
+Inserts the result of a given code snippet as follows.
 
 Using code like this:
 ```go
@@ -155,7 +156,7 @@ func main() {
    }
 
    options := CreateReportOptions{
-      LiteralXmlDelimiter: "||",
+		LiteralXmlDelimiter: "||",
    }
 
    outBuf, err := CreateReport("mytemplate.docx", &data, options)
@@ -219,7 +220,7 @@ If the `label` is not specified, the URL is used as a label.
 
 ### `HTML`
 
-Takes the HTML resulting from evaluating a JavaScript snippet and converts it to Word contents.
+Takes the HTML resulting from evaluating a code snippet and converts it to Word contents.
 
 **Important:** This uses [altchunk](https://blogs.msdn.microsoft.com/ericwhite/2008/10/26/how-to-use-altchunk-for-document-assembly/), which is only supported in Microsoft Word, and not in e.g. LibreOffice or Google Docs.
 
