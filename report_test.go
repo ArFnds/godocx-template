@@ -506,4 +506,67 @@ func TestCreateReport(t *testing.T) {
 		})
 	})
 
+	// Test LINK processing
+	t.Run("link processing", func(t *testing.T) {
+		data := ReportData{
+			"projectLink": &LinkPars{
+				Url:   "https://github.com/project",
+				Label: "Project Repository",
+			},
+			"simpleLink": map[string]any{
+				"url": "https://example.com",
+			},
+		}
+
+		// Create template files for testing
+		templateContent := []byte(`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+		<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
+			<w:body>
+				<w:p>
+					<w:r>
+						<w:t>+++LINK projectLink+++</w:t>
+					</w:r>
+				</w:p>
+				<w:p>
+					<w:r>
+						<w:t>+++LINK simpleLink+++</w:t>
+					</w:r>
+				</w:p>
+			</w:body>
+		</w:document>`)
+		err := createTestDocx(templateContent, "test_template_link.docx")
+		if err != nil {
+			t.Fatalf("Failed to create test template: %v", err)
+		}
+		defer os.Remove("test_template_link.docx")
+
+		// Run test
+		options := CreateReportOptions{
+			LiteralXmlDelimiter: "||",
+		}
+
+		outBuf, err := CreateReport("test_template_link.docx", &data, options)
+		if err != nil {
+			t.Fatalf("CreateReport failed: %v", err)
+		}
+
+		// Save the output file
+		os.WriteFile("test_output_link.docx", outBuf, 0644)
+		defer os.Remove("test_output_link.docx")
+
+		// Verify the generated file content
+		verifyDocxContent(t, "test_output_link.docx", func(documentXml []byte) error {
+			expectedValues := []string{
+				"Project Repository",
+				"https://example.com",
+			}
+			for _, val := range expectedValues {
+				if !bytes.Contains(documentXml, []byte(val)) {
+					return fmt.Errorf("Generated document does not contain expected value: %s", val)
+				}
+			}
+			return nil
+		})
+	})
+
 }
