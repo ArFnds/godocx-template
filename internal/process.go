@@ -79,7 +79,9 @@ func getCommand(command string, shorthands map[string]string, fixSmartQuotes boo
 	cmd := strings.TrimSpace(command)
 	runes := []rune(cmd)
 
-	if runes[0] == '*' {
+	if len(runes) == 0 {
+		return "", NewInvalidCommandError("Empty command", cmd)
+	} else if runes[0] == '*' {
 		aliasName := string(runes[1:])
 		if foundCmd, ok := shorthands[aliasName]; ok {
 			cmd = foundCmd
@@ -1215,14 +1217,6 @@ func appendTextToTagBuffers(text string, ctx *Context, options map[string]bool) 
 			buf.fInsertedText = true
 		}
 	}
-}
-
-func formatErrors(errorsList []error) string {
-	errMsgs := []string{}
-	for _, err := range errorsList {
-		errMsgs = append(errMsgs, err.Error())
-	}
-	return strings.Join(errMsgs, "; ")
 }
 
 func updateID(newNode *NonTextNode, ctx *Context) {
