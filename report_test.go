@@ -8,6 +8,8 @@ import (
 	"os"
 	"strings"
 	"testing"
+
+	"github.com/ArFnds/godocx-template/internal"
 )
 
 func createTestDocx(content []byte, filename string) error {
@@ -567,6 +569,48 @@ func TestCreateReport(t *testing.T) {
 			}
 			return nil
 		})
+	})
+
+	t.Run("Crash on empty space inside delimiters #4", func(t *testing.T) {
+		data := ReportData{
+			"name":    "John",
+			"surname": "Doe",
+		}
+
+		// Create template files for testing
+		templateContent := []byte(`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+		<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
+			<w:body>
+				<w:p>
+					<w:r>
+						<w:t>{} { }</w:t>
+					</w:r>
+				</w:p>
+			</w:body>
+		</w:document>`)
+		err := createTestDocx(templateContent, "test_template.docx")
+		if err != nil {
+			t.Fatalf("Failed to create test template: %v", err)
+		}
+		defer os.Remove("test_template.docx")
+
+		// Run test
+		options := CreateReportOptions{
+			CmdDelimiter: &Delimiters{
+				Open:  "{",
+				Close: "}",
+			},
+		}
+
+		_, err = CreateReport("test_template.docx", &data, options)
+		if err == nil {
+			t.Fatalf("Expected empty command error but got nil")
+		}
+
+		if _, ok := err.(*internal.InvalidCommandError); ok {
+			t.Fatalf("Expected InvalidCommandError but got %T", err)
+		}
+
 	})
 
 }
