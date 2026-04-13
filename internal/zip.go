@@ -131,6 +131,9 @@ func (za *ZipArchive) Close() error {
 			return err
 		}
 	}
-
+	
+	if err := za.reader.Close(); err != nil {
+		return err
+	}
 	return za.writer.Close()
 }
