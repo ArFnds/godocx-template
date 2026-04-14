@@ -102,6 +102,8 @@ func (za *ZipArchive) GetFile(name string) ([]byte, error) {
 }
 
 func (za *ZipArchive) Close() error {
+	defer za.reader.Close()
+	
 	names := make([]string, len(za.files))
 	i := 0
 	for name, data := range za.files {
@@ -132,8 +134,5 @@ func (za *ZipArchive) Close() error {
 		}
 	}
 	
-	if err := za.reader.Close(); err != nil {
-		return err
-	}
 	return za.writer.Close()
 }
