@@ -2,6 +2,7 @@ package godocx
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"log/slog"
 	"slices"
@@ -25,13 +26,20 @@ const (
 // Returns:
 //   - A byte slice representing the generated document.
 //   - An error if any occurs during template parsing, processing, or document generation.
-func CreateReport(templatePath string, data *ReportData, options CreateReportOptions) ([]byte, error) {
-
-	outBuffer := new(bytes.Buffer)
+func CreateReport(templatePath string, data *ReportData, options CreateReportOptions) (outBytes []byte, err error) {
+	
+	outBuffer := bytes.NewBuffer(outBytes)
 	zip, err := internal.NewZipArchive(templatePath, outBuffer)
 	if err != nil {
 		return nil, err
 	}
+	doCleanupOnDefer := true
+	defer func() {
+		if doCleanupOnDefer { // only do cleanup on early returns
+			errOnClose := zip.Close()
+			err = errors.Join(err, errOnClose)
+		}
+	}()
 
 	// xml parse the document
 	parseResult, err := internal.ParseTemplate(zip)
@@ -131,9 +139,16 @@ func CreateReport(templatePath string, data *ReportData, options CreateReportOpt
 		zip.SetFile(CONTENT_TYPES_PATH, finalContentTypesXml)
 	}
 
-	err = zip.Close()
+	err = zip.Assemble()
 	if err != nil {
-		return nil, fmt.Errorf("Error closing zip : %w", err)
+		return nil, fmt.Errorf("Error assembling zip: %w", err)
 	}
+
+	err = zip.Close()
+	doCleanupOnDefer = false // zip was closed here by code path, no special cleanup needed
+	if err != nil {
+		return nil, fmt.Errorf("Error closing zip: %w", err)
+	}
+
 	return outBuffer.Bytes(), nil
 }

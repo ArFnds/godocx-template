@@ -138,6 +138,43 @@ func TestCreateReport(t *testing.T) {
 		})
 	})
 
+	// Test if zip.Reader is closed on early returns
+	t.Run("Test if zip.Reader is closed on early returns", func(t *testing.T) {
+		data := ReportData{}
+
+		// This template is intentionally non-valid to produce an error (with early return from CreateReport())
+		templateContent := []byte(`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+			<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
+				<w:body>
+					<w:p>
+						<w:r>
+							<w:t>+++this_throws_error+++</w:t>
+						</w:r>
+					</w:p>
+				</w:body>
+			</w:document>`)
+		err := createTestDocx(templateContent, "test_template.docx")
+		if err != nil {
+			t.Fatalf("Failed to create test template: %v", err)
+		}
+		defer os.Remove("test_template.docx")
+
+		// Run test
+		options := CreateReportOptions{
+			LiteralXmlDelimiter: "||",
+		}
+
+		// This will return an error, because template is not valid:
+		_, err = CreateReport("test_template.docx", &data, options)
+
+		// Now we have to ensure that CreateReport() closed(unlocked) template file on early return:
+		err = os.Remove("test_template.docx")
+		if err != nil {
+			t.Fatalf("Removing docx template file failed: %v", err)
+		}
+		
+	})
+	
 	// Test image processing
 	t.Run("image processing", func(t *testing.T) {
 		imageData := []byte{
