@@ -131,6 +131,7 @@ type Context struct {
 	vars                     map[string]VarValue
 	loops                    []LoopStatus
 	fJump                    bool
+	fContinueLoop            bool
 	shorthands               map[string]string
 	options                  CreateReportOptions
 	//jsSandbox                SandBox

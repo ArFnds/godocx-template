@@ -669,8 +669,105 @@ func TestCreateReport(t *testing.T) {
 		})
 	})
 
+	// Test FOR/END-FOR in the same <w:t> element
+	t.Run("for endfor in same w:t element", func(t *testing.T) {
+		data := ReportData{
+			"names": []any{"Alice", "Bob", "Charlie"},
+		}
+
+		templateContent := []byte(`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+		<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
+			<w:body>
+				<w:p>
+					<w:r>
+						<w:t>Names: +++FOR name IN names+++    +++$name+++,    +++END-FOR name+++</w:t>
+					</w:r>
+				</w:p>
+			</w:body>
+		</w:document>`)
+		err := createTestDocx(templateContent, "test_template_for_same_wt.docx")
+		if err != nil {
+			t.Fatalf("Failed to create test template: %v", err)
+		}
+		defer os.Remove("test_template_for_same_wt.docx")
+
+		options := CreateReportOptions{
+			LiteralXmlDelimiter: "||",
+		}
+
+		outBuf, err := CreateReport("test_template_for_same_wt.docx", &data, options)
+		if err != nil {
+			t.Fatalf("CreateReport failed: %v", err)
+		}
+
+		os.WriteFile("test_output_for_same_wt.docx", outBuf, 0644)
+		defer os.Remove("test_output_for_same_wt.docx")
+
+		verifyDocxContent(t, "test_output_for_same_wt.docx", func(documentXml []byte) error {
+			if !bytes.Contains(documentXml, []byte("Alice")) {
+				return fmt.Errorf("Generated document does not contain expected text: Alice")
+			}
+			if !bytes.Contains(documentXml, []byte("Bob")) {
+				return fmt.Errorf("Generated document does not contain expected text: Bob")
+			}
+			if !bytes.Contains(documentXml, []byte("Charlie")) {
+				return fmt.Errorf("Generated document does not contain expected text: Charlie")
+			}
+			if !bytes.Contains(documentXml, []byte("Names:")) {
+				return fmt.Errorf("Generated document does not contain expected text: Names:")
+			}
+			return nil
+		})
+	})
+
+	// Test FOR/END-FOR in the same <w:t> element with empty array
+	t.Run("for endfor in same w:t element - empty array", func(t *testing.T) {
+		data := ReportData{
+			"names": []any{},
+		}
+
+		templateContent := []byte(`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+		<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
+			<w:body>
+				<w:p>
+					<w:r>
+						<w:t>Names: +++FOR name IN names+++    +++$name+++,    +++END-FOR name+++</w:t>
+					</w:r>
+				</w:p>
+			</w:body>
+		</w:document>`)
+		err := createTestDocx(templateContent, "test_template_for_same_wt_empty.docx")
+		if err != nil {
+			t.Fatalf("Failed to create test template: %v", err)
+		}
+		defer os.Remove("test_template_for_same_wt_empty.docx")
+
+		options := CreateReportOptions{
+			LiteralXmlDelimiter: "||",
+		}
+
+		outBuf, err := CreateReport("test_template_for_same_wt_empty.docx", &data, options)
+		if err != nil {
+			t.Fatalf("CreateReport failed: %v", err)
+		}
+
+		os.WriteFile("test_output_for_same_wt_empty.docx", outBuf, 0644)
+		defer os.Remove("test_output_for_same_wt_empty.docx")
+
+		verifyDocxContent(t, "test_output_for_same_wt_empty.docx", func(documentXml []byte) error {
+			if bytes.Contains(documentXml, []byte("Alice")) {
+				return fmt.Errorf("Generated document contains unexpected text: Alice")
+			}
+			if !bytes.Contains(documentXml, []byte("Names:")) {
+				return fmt.Errorf("Generated document does not contain expected text: Names:")
+			}
+			return nil
+		})
+	})
+
 	// Test IF/END-IF in the same <w:t> element with false condition
 	t.Run("if endif in same w:t element - false condition", func(t *testing.T) {
+
 		data := ReportData{
 			"myFlag": false,
 		}

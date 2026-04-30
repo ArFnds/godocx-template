@@ -212,13 +212,17 @@ func processForIf(data *ReportData, node Node, ctx *Context, cmd string, cmdName
 				loopOver = append(loopOver, item)
 			}
 		}
-		// For IF statements, immediately set idx to 0 (not -1) to skip the exploration phase.
-		// IF statements only have one iteration, so there's no need to explore.
-		// This also fixes the case where IF and END-IF are in the same text node,
-		// where exploration would skip the content between them.
+		// For IF statements and FOR loops in the same text node, immediately set idx to 0
+		// (not -1) to skip the exploration phase. The exploration phase is used to figure
+		// out which paragraph/table-row nodes to delete when the loop is empty, but when
+		// the entire loop is within a single text node, there are no such nodes to delete.
+		// Skipping exploration also fixes the case where IF/END-IF or FOR/END-FOR are in
+		// the same text node, where exploration would skip the content between them.
 		initialIdx := -1
-		if isIf && len(loopOver) > 0 {
-			initialIdx = 0
+		if len(loopOver) > 0 {
+			if isIf {
+				initialIdx = 0
+			}
 		}
 		ctx.loops = append(ctx.loops, LoopStatus{
 			refNode:      node,
@@ -299,10 +303,13 @@ func processEndForIf(node Node, ctx *Context, cmd string, cmdName string, cmdRes
 			ctx.vars["$"+varName] = nextItem
 			ctx.vars["$idx"] = nextIdx
 		}
-		// For IF statements, only set fJump if the IF and END-IF are in different nodes.
-		// When both are in the same text node, the content between them has already been
-		// output and there's no need to jump back - the loop is effectively done.
-		if !isIf || curLoop.refNode != node {
+		// When FOR/END-FOR or IF/END-IF are in the same text node, we can't use the
+		// jump mechanism (which works at the walker level, re-processing children of
+		// the refNode). Instead, we set fContinueLoop to signal processText to
+		// re-process the segments from the beginning.
+		if curLoop.refNode == node {
+			ctx.fContinueLoop = true
+		} else {
 			ctx.fJump = true
 		}
 		curLoop.idx = nextIdx
@@ -1158,42 +1165,56 @@ func processText(data *ReportData, node *TextNode, ctx *Context, onCommand Comma
 	outText := ""
 	errorsList := []error{}
 
-	for idx, segment := range segments {
-		if idx > 0 {
-			// Include the separators in the `buffers` field (used for deleting paragraphs if appropriate)
-			appendTextToTagBuffers(cmdDelimiter.Open, ctx, map[string]bool{"fCmd": true})
-		}
-		// Append segment either to the `ctx.cmd` buffer (to be executed), if we are in "command mode",
-		// or to the output text
-		if ctx.fCmd {
-			ctx.cmd += segment
-		} else if !isLoopExploring(ctx) {
-			outText += segment
-		}
-		appendTextToTagBuffers(segment, ctx, map[string]bool{"fCmd": ctx.fCmd})
+	// When fContinueLoop is set (FOR/END-FOR in the same text node with more items),
+	// we need to re-process the segments from the beginning for each iteration.
+	// We use a loop that continues as long as fContinueLoop is true.
+	for {
+		ctx.fContinueLoop = false
 
-		// If there are more segments, execute the command (if we are in "command mode"),
-		// and toggle "command mode"
-		if idx < len(segments)-1 {
-			if ctx.fCmd {
-				cmdResultText, err := onCommand(data, node, ctx)
-				if err != nil && err != IgnoreError {
-					if failFast {
-						return "", err
-					} else {
-						errorsList = append(errorsList, err)
-					}
-				} else if err != IgnoreError {
-					outText += cmdResultText
-					appendTextToTagBuffers(cmdResultText, ctx, map[string]bool{
-						"fCmd":          false,
-						"fInsertedText": true,
-					})
-				}
+		for idx, segment := range segments {
+			if idx > 0 {
+				// Include the separators in the `buffers` field (used for deleting paragraphs if appropriate)
+				appendTextToTagBuffers(cmdDelimiter.Open, ctx, map[string]bool{"fCmd": true})
 			}
-			ctx.fCmd = !ctx.fCmd
+			// Append segment either to the `ctx.cmd` buffer (to be executed), if we are in "command mode",
+			// or to the output text
+			if ctx.fCmd {
+				ctx.cmd += segment
+			} else if !isLoopExploring(ctx) {
+				outText += segment
+			}
+			appendTextToTagBuffers(segment, ctx, map[string]bool{"fCmd": ctx.fCmd})
+
+			// If there are more segments, execute the command (if we are in "command mode"),
+			// and toggle "command mode"
+			if idx < len(segments)-1 {
+				if ctx.fCmd {
+					cmdResultText, err := onCommand(data, node, ctx)
+					if err != nil && err != IgnoreError {
+						if failFast {
+							return "", err
+						} else {
+							errorsList = append(errorsList, err)
+						}
+					} else if err != IgnoreError {
+						outText += cmdResultText
+						appendTextToTagBuffers(cmdResultText, ctx, map[string]bool{
+							"fCmd":          false,
+							"fInsertedText": true,
+						})
+					}
+				}
+				ctx.fCmd = !ctx.fCmd
+			}
+		}
+
+		// If fContinueLoop was set during processing (by processEndForIf for a FOR loop
+		// in the same text node), restart from the beginning to process the next iteration.
+		if !ctx.fContinueLoop {
+			break
 		}
 	}
+
 	if len(errorsList) > 0 {
 		return "", errors.Join(errorsList...)
 	}
