@@ -212,13 +212,21 @@ func processForIf(data *ReportData, node Node, ctx *Context, cmd string, cmdName
 				loopOver = append(loopOver, item)
 			}
 		}
+		// For IF statements, immediately set idx to 0 (not -1) to skip the exploration phase.
+		// IF statements only have one iteration, so there's no need to explore.
+		// This also fixes the case where IF and END-IF are in the same text node,
+		// where exploration would skip the content between them.
+		initialIdx := -1
+		if isIf && len(loopOver) > 0 {
+			initialIdx = 0
+		}
 		ctx.loops = append(ctx.loops, LoopStatus{
 			refNode:      node,
 			refNodeLevel: ctx.level,
 			varName:      varName,
 			loopOver:     loopOver,
 			isIf:         isIf,
-			idx:          -1,
+			idx:          initialIdx,
 		})
 	}
 	logLoop(ctx.loops)
@@ -257,9 +265,13 @@ func processEndForIf(node Node, ctx *Context, cmd string, cmdName string, cmdRes
 	}
 
 	// First time we visit an END-IF node, we assign it the arbitrary name
-	// generated when the IF was processed
-	if isIf && node.Name() == "" {
-		node.SetName(curLoop.varName)
+	// generated when the IF was processed.
+	// When IF and END-IF are in the same text node, the name is already set
+	// by processForIf, but we still need to count the END-IF.
+	if isIf {
+		if node.Name() == "" {
+			node.SetName(curLoop.varName)
+		}
 		ctx.gCntEndIf += 1
 	}
 
@@ -287,7 +299,12 @@ func processEndForIf(node Node, ctx *Context, cmd string, cmdName string, cmdRes
 			ctx.vars["$"+varName] = nextItem
 			ctx.vars["$idx"] = nextIdx
 		}
-		ctx.fJump = true
+		// For IF statements, only set fJump if the IF and END-IF are in different nodes.
+		// When both are in the same text node, the content between them has already been
+		// output and there's no need to jump back - the loop is effectively done.
+		if !isIf || curLoop.refNode != node {
+			ctx.fJump = true
+		}
 		curLoop.idx = nextIdx
 	} else {
 		// loop finished
