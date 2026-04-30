@@ -25,7 +25,7 @@ const (
 // Returns:
 //   - A byte slice representing the generated document.
 //   - An error if any occurs during template parsing, processing, or document generation.
-func CreateReport(templatePath string, data *ReportData, options CreateReportOptions) (outBytes []byte, err error) { {
+func CreateReport(templatePath string, data *ReportData, options CreateReportOptions) (outBytes []byte, err error) {
 	
 	outBuffer := bytes.NewBuffer(outBytes)
 	zip, err := internal.NewZipArchive(templatePath, outBuffer)
@@ -34,8 +34,7 @@ func CreateReport(templatePath string, data *ReportData, options CreateReportOpt
 	}
 	doCleanupOnDefer := true
 	defer func() {
-		// only do cleanup on early returns:
-		if doCleanupOnDefer {
+		if doCleanupOnDefer { // only do cleanup on early returns
 			errOnClose := zip.Close()
 			err = errors.Join(err, errOnClose)
 		}
