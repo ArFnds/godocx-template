@@ -2,6 +2,7 @@ package godocx
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"log/slog"
 	"slices"
